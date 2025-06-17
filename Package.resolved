@@ -1,0 +1,24 @@
+{
+  "originHash" : "fa96bda4130162a81f8528ac6e72f2e4fcbda5673b0c886723562621365b3ea2",
+  "pins" : [
+    {
+      "identity" : "csl-mobile-bridge",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/TokeoPay/csl-mobile-bridge.git",
+      "state" : {
+        "branch" : "b118f8d",
+        "revision" : "b118f8d38ac67465bb544e9c64aa2cc9b91a9c4d"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "revision" : "64889f0c732f210a935a0ad7cda38f77f876262d",
+        "version" : "509.1.1"
+      }
+    }
+  ],
+  "version" : 3
+}
