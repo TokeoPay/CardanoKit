@@ -14,7 +14,7 @@ let package = Package(
     ],dependencies: [
         .package(
             url: "https://github.com/TokeoPay/csl-mobile-bridge.git",
-            revision: "6f69bb5"
+            revision: "b689f7fdad195fc48cce99842424b28f36d89aac"
         )
     ],
     targets: [
@@ -23,8 +23,7 @@ let package = Package(
         .target(
             name: "CardanoKit",
             dependencies: [
-                .product(name: "CSLKit", package: "csl-mobile-bridge"),
-                .product(name: "CSLKitMacrosPlugin", package: "csl-mobile-bridge")
+                .product(name: "CSLKit", package: "csl-mobile-bridge")
             ]
         ),
         .testTarget(
