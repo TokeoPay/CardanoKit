@@ -86,10 +86,10 @@ The standards as defined by a number of Cardano Improvement Proposals (CIPs) wil
 | CIP-0011 | Staking keychain | https://cips.cardano.org/cip/CIP-0011 |
 | CIP-0016 | Cryptographic Key Serialisation Formats | https://cips.cardano.org/cip/CIP-0016 |
 | CIP-0019 | Cardano Addresses | https://cips.cardano.org/cip/CIP-0019 |
-| CIP-030 | | https://cips.cardano.org/cip/CIP-0030 |
-| CIP-095 | | https://cips.cardano.org/cip/CIP-0095 |
+| CIP-030 | Cardano dApp-Wallet Web Bridge| https://cips.cardano.org/cip/CIP-0030 |
+| CIP-095 | Governance web bridge | https://cips.cardano.org/cip/CIP-0095 |
 | CIP-0105 | Conway era Key Chains for HD Wallets | https://cips.cardano.org/cip/CIP-0105 |
-| CIP-1694 | | |
+| CIP-1694 | Governance | https://github.com/cardano-foundation/CIPs/commit/a85ffb7eddcd60a95ede453d923ab7cdbffadad3 | 
 
 ## 3.0. Key Components
 
