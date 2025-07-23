@@ -1,12 +1,22 @@
 {
-  "originHash" : "5dad168e5a9ca7132fc6f2fdb5e1bcdaba3f136966f52ed417d7b304e99d907c",
+  "originHash" : "b97f8db433d3b967b71b86c84abeaa9d02bc4cb6c7e2e1929a7c44f9dfc9fc77",
   "pins" : [
     {
-      "identity" : "csl-mobile-bridge",
+      "identity" : "bip39.swift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/TokeoPay/csl-mobile-bridge.git",
+      "location" : "https://github.com/tesseract-one/Bip39.swift.git",
       "state" : {
-        "revision" : "b689f7fdad195fc48cce99842424b28f36d89aac"
+        "revision" : "bb2b82539d685e1457493b695cdc8e4dcff97c92",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "uncommoncrypto.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tesseract-one/UncommonCrypto.swift.git",
+      "state" : {
+        "revision" : "075344faec47dadba98bef6a319e310c98be0820",
+        "version" : "0.2.1"
       }
     }
   ],

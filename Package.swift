@@ -3,19 +3,27 @@
 
 import PackageDescription
 
-let package = Package(
+let useLocalCSKKit = true
+
+var package = Package(
     name: "CardanoKit",
-    platforms: [.macOS(.v10_15), .iOS(.v13)],
+    platforms: [.macOS(.v15), .iOS(.v17)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "CardanoKit",
             targets: ["CardanoKit"]),
-    ],dependencies: [
-        .package(
-            url: "https://github.com/TokeoPay/csl-mobile-bridge.git",
-            revision: "b689f7fdad195fc48cce99842424b28f36d89aac"
-        )
+    ],
+    dependencies: [
+        .package(url: "https://github.com/tesseract-one/Bip39.swift.git", from: "0.2.0"),
+        useLocalCSKKit ?
+            .package(
+                name: "csl-mobile-bridge", path: "../csl-mobile-bridge"
+            ) :
+            .package(
+                url: "https://github.com/TokeoPay/csl-mobile-bridge.git",
+                revision: "b689f7fdad195fc48cce99842424b28f36d89aac"
+            )
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -23,7 +31,8 @@ let package = Package(
         .target(
             name: "CardanoKit",
             dependencies: [
-                .product(name: "CSLKit", package: "csl-mobile-bridge")
+                .product(name: "Bip39", package: "bip39.swift"),
+                .product(name: "CSLKit", package: "csl-mobile-bridge"),
             ]
         ),
         .testTarget(
