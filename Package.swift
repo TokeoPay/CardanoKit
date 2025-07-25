@@ -2,8 +2,9 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import CompilerPluginSupport
 
-let useLocalCSKKit = true
+let useLocalCSKKit = false
 
 var package = Package(
     name: "CardanoKit",
@@ -22,10 +23,11 @@ var package = Package(
             ) :
             .package(
                 url: "https://github.com/TokeoPay/csl-mobile-bridge.git",
-                revision: "b689f7fdad195fc48cce99842424b28f36d89aac"
-            )
+                revision: "74cbfa925fe7fa65000671e2b415f7d75d6badde"
+            ),
     ],
     targets: [
+//        .binaryTarget(name: "msg_signing_lib", path: "../message-signing-bridge/ios/build/message_signing_bridge.artifactbundle/message_signing_bridge.xcframework"),
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
@@ -33,7 +35,8 @@ var package = Package(
             dependencies: [
                 .product(name: "Bip39", package: "bip39.swift"),
                 .product(name: "CSLKit", package: "csl-mobile-bridge"),
-            ]
+//                "msg_signing_lib",
+            ],
         ),
         .testTarget(
             name: "CardanoKitTests",

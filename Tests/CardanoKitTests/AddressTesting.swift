@@ -2,7 +2,7 @@ import Testing
 import XCTest
 @testable import CardanoKit
 
-@Test func example() async throws {
+@Test func address_decode_testing() async throws {
     
     let address = try Address(bech32: "addr1qydqycuh5r253yp70572k2u80yy7hajyy5r9vd6nl9kcxndftu32t8ma5rrlus948vc8wcm0wj5nq6yz5p532lth67xq4hd8ee")
     

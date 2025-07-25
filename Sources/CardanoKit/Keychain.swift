@@ -26,9 +26,6 @@ public class KeyPair {
     fileprivate let privateKey: OpaqueRustPointer<CSLKit.Types.CSL_Bip32PrivateKey>
     
     init(entropy: Data) throws {
-        
-        print(" >>  entropy", entropy.hexEncodedString() )
-        
         self.privateKey = try CSLKit.bip32PrivateKeyFromBip39Entropy(entropy_data: Data(entropy), password_data: Data())
         
         print(" >>  entropy >> privateKey", try CSLKit.bip32PrivateKeyToBech32(self_rptr: self.privateKey))
@@ -116,6 +113,11 @@ public class Bip32PrivateKey {
         return try CSLKit.bip32PrivateKeyToBech32(self_rptr: self.ptr)
     }
     
+    public func toRaw() throws -> PrivateKey {
+        let privateKey = try CSLKit.bip32PrivateKeyToRawKey(self_rptr: self.ptr)
+        return PrivateKey(ptr: privateKey, parent: self)
+    }
+        
     public func derive(index: Int64, harden: Bool) throws -> Bip32PrivateKey {
         
         let index = if harden {
@@ -143,7 +145,7 @@ public class Bip32PrivateKey {
 
 public class Keychain {
     
-    private var mnumonic: [String]?
+    private var mnumonic: [String]
     public var rootKeyPair: KeyPair
     private var accountBaseKey: Bip32PrivateKey
     private var accountIndex: Int64 = 0
@@ -167,6 +169,8 @@ public class Keychain {
     public init(accountIndex: Int64, entropy: [UInt8], password: Data? = Data()) throws {
         self.rootKeyPair = try KeyPair(entropy: Data(entropy))
         
+        self.mnumonic = try Bip39.Mnemonic(entropy: entropy).mnemonic()
+        
         self.accountIndex = accountIndex
         
         let baseKey = Bip32PrivateKey(ptr: self.rootKeyPair.privateKey)
@@ -178,6 +182,10 @@ public class Keychain {
             .derive(index: self.accountIndex, harden: true)    // account'
     }
     
+    public func getMnumonic() -> [String] {
+        return self.mnumonic
+    }
+        
     public func getRootKey() -> Bip32PrivateKey {
         return self.accountBaseKey
     }
@@ -203,21 +211,34 @@ public class Keychain {
     public func getDRepKey(index: Int64) throws -> Bip32PrivateKey {
         return try getKey(index: index, role: 3)
     }
-    
-    public func signData(data: Data, with: String) throws -> String {
         
-        // Look thru Keys to see if we can match the "with" address.
-        return "No"
-//        let x = CSLKit.privateKeySign(self_rptr: self.getKey(index: 10, role: 0), msg_data: Data())
+}
+
+public class PrivateKey {
+    private var ptr: OpaqueRustPointer<CSLKit.Types.CSL_PrivateKey>
+    private var parent: Bip32PrivateKey?
+    
+    internal init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_PrivateKey>, parent: Bip32PrivateKey? = nil) {
+        self.ptr = ptr
+        self.parent = parent
+    }
+    
+    public func signData(data: Data, address: Address) throws -> String {
+        
+        return try CSLKit.privateKeyCose1SignData(self_rptr: self.ptr, addr_ptr: address.ptr, bytes_data: data)
+
+//        return try MsgSigningKit.cose1SignData(pk: self.ptr, data: data)
+//        return Signature(ptr: try CSLKit.privateKeySign(self_rptr: self.ptr, msg_data: data), parent: self)
     }
     
 }
 
-
 public class Signature {
+    private var parent: PrivateKey?
     private var ptr: OpaqueRustPointer<CSLKit.Types.CSL_Signature>
     
-    init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Signature>) {
+    internal init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Signature>, parent: PrivateKey? = nil) {
+        self.parent = parent
         self.ptr = ptr
     }
 }

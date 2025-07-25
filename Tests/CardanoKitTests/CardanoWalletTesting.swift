@@ -6,6 +6,8 @@
 //
 
 import Testing
+import Bip39
+import Foundation
 @testable import CardanoKit
 
 @Test func test_create_from_words_priv_key_bech32() async throws {
@@ -22,6 +24,82 @@ import Testing
     //46f3613f11e45d18c301b82c8c59256f3795bb1b848283d2a293725a
 //    print(try wallet.getRootPrivateKey().toString())
     
+}
+
+@Test func test_create_new_wallet_24_words() async throws {
+    let wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .SOLID)
+    let words = wallet.getMnumonic()
+    
+    #expect(words.count == 24)
+    print("\n\n\(words.count)")
+}
+
+
+
+extension Data {
+    /// Converts a Data object to a hexadecimal encoded string.
+    var hexEncodedString: String {
+        return map { String(format: "%02hhx", $0) }.joined()
+    }
+    
+    /// Initializes a Data object from a hexadecimal encoded string.
+    ///
+    /// - Parameter hexString: The hexadecimal string to convert.
+    /// - Returns: A Data object, or nil if the string is not valid hexadecimal.
+    init?(hexString: String) {
+        let len = hexString.count
+        guard len % 2 == 0 else { return nil } // Hex strings must have an even number of characters
+        
+        var data = Data(capacity: len / 2)
+        var i = hexString.startIndex
+        while i < hexString.endIndex {
+            let j = hexString.index(i, offsetBy: 2)
+            let bytes = hexString[i..<j]
+            if let byte = UInt8(bytes, radix: 16) {
+                data.append(byte)
+            } else {
+                return nil // Invalid hex character
+            }
+            i = j
+        }
+        self = data
+    }
+}
+
+
+
+@Test func go_from_words_to_entropy_and_back() async throws {
+    let dict: Any = ["test", 1231, "next", "other"]
+    
+    
+    
+}
+
+@Test func test_create_new_wallet_words() async throws {
+    var wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .PISS_WEAK)
+    var words = wallet.getMnumonic()
+    
+    #expect(words.count == 12)
+    
+    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .LITTLE_BETTER)
+    words = wallet.getMnumonic()
+    
+    #expect(words.count == 15)
+    
+    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .NEARLY_THERE)
+    words = wallet.getMnumonic()
+    
+    #expect(words.count == 18)
+    
+    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .SHOULD_BE_GOOD)
+    words = wallet.getMnumonic()
+    
+    #expect(words.count == 21)
+    
+    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .SOLID)
+    words = wallet.getMnumonic()
+    
+    #expect(words.count == 24)
 }
 
 @Test func test_from_entropy_priv_key_bech32() async throws {
@@ -47,4 +125,15 @@ import Testing
     #expect(try wallet.getPaymentAddress(index: 0).asBech32() == "addr_test1qpu5vlrf4xkxv2qpwngf6cjhtw542ayty80v8dyr49rf5ewvxwdrt70qlcpeeagscasafhffqsxy36t90ldv06wqrk2qum8x5w")
     
     
+}
+
+@Test func test_signing_some_data() async throws {
+    let words = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
+    let wallet = try CardanoWallet.fromMnemonic(accountIndex: 0, words: words)
+    
+    let stringToSign = "Hello, Tokers"
+    
+    let signature = try wallet.signData(data: Data(stringToSign.utf8), withAddress: try wallet.getPaymentAddress(index: 15).asBech32())
+    
+    print(" >> Signed Result: ", signature)
 }

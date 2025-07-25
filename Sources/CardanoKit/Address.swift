@@ -32,8 +32,8 @@ public class Address {
         }
     }
     
-    public func getPaymentCred() throws -> OpaqueRustPointer<CSLKit.Types.CSL_PaymentCred> {
-        return try CSLKit.addressPaymentCred(self_rptr: self.ptr)
+    public func getPaymentCred() throws -> Credential? {
+        return Credential(ptr: try CSLKit.addressPaymentCred(self_rptr: self.ptr), keyHash: nil)
     }
     
     public func toBytes() throws -> Data {
@@ -69,9 +69,19 @@ public class Credential {
         return Credential(ptr: cred, keyHash: keyHash)
     }
     
-    internal init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Credential>, keyHash: Ed25519KeyHash) {
+    internal init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Credential>, keyHash: Ed25519KeyHash?) {
         ptr.debug(prefix: " >> CSL_Credential")
         self.keyHash = keyHash
         self.ptr = ptr
+    }
+    
+    public func matches(other: Credential) throws -> Bool {
+        let credBytes = try CSLKit.credentialToBytes(self_rptr: self.ptr)
+        let otherCredBytes = try CSLKit.credentialToBytes(self_rptr: other.ptr)
+        
+        print(" credBytes      >> ", credBytes.hexEncodedString())
+        print(" otherCredBytes >> ", otherCredBytes.hexEncodedString())
+        
+        return credBytes == otherCredBytes
     }
 }
