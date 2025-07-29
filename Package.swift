@@ -23,7 +23,7 @@ var package = Package(
             ) :
             .package(
                 url: "https://github.com/TokeoPay/csl-mobile-bridge.git",
-                revision: "74cbfa925fe7fa65000671e2b415f7d75d6badde"
+                exact: "0.0.1-alpha.5"
             ),
     ],
     targets: [

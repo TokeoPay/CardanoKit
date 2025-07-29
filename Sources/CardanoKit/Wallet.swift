@@ -75,7 +75,7 @@ public class CardanoWallet {
                 }
                 index = index + 1
                 print(" >> Have we found anything: \(foundKey != nil) - next index: \(index)")
-            } while (foundKey == nil && index < 2000)
+            } while (foundKey == nil && index < 20)
         } else {
             
             if let stakingCredential = address.stakingCredential {
@@ -99,6 +99,46 @@ public class CardanoWallet {
         }
 
         return nil
+    }
+    
+    public func signTransaction(transaction: FixedTransaction, utxos: TransactionUnspentOutputs) throws {
+        
+        let requiredSigners = try transaction.getRequiredSignerKeyHashes(utxos: utxos)
+        
+        var keysToSignWith: [Bip32PrivateKey] = []
+        let stakePrivKey = try self.rootKeychain.getStakingKey(index: 0)
+        let stakeKey = try stakePrivKey.toPublic().hash().toHex()
+        
+        try requiredSigners.forEach {
+            let requiredKey = $0.hexEncodedString()
+            
+            var index: Int64 = 0
+            
+            if (stakeKey == requiredKey) {
+                keysToSignWith.append(stakePrivKey)
+                return
+            }
+            var keyFound = false
+            repeat {
+                let pk = try self.rootKeychain
+                    .getKey(index: index, role: 0)
+                if (try pk
+                    .toPublic()
+                    .hash()
+                    .toHex() == requiredKey) {
+                    keyFound = true
+                    keysToSignWith.append(pk)
+                }
+                index = index + 1
+                print(" >> Have we found anything: keyFound=\(keyFound) - next index: \(index)")
+            } while (!keyFound && index < 20)
+        }
+        
+        try keysToSignWith.forEach { key in
+            try key.toRaw().signTxn(txn: transaction)
+        }
+        
+        
     }
     
     public func getMnumonic() -> [String] {

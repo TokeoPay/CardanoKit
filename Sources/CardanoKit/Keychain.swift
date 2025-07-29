@@ -226,9 +226,12 @@ public class PrivateKey {
     public func signData(data: Data, address: Address) throws -> String {
         
         return try CSLKit.privateKeyCose1SignData(self_rptr: self.ptr, addr_ptr: address.ptr, bytes_data: data)
-
 //        return try MsgSigningKit.cose1SignData(pk: self.ptr, data: data)
 //        return Signature(ptr: try CSLKit.privateKeySign(self_rptr: self.ptr, msg_data: data), parent: self)
+    }
+    
+    public func signTxn(txn: FixedTransaction) throws {
+        try CSLKit.fixedTransactionSignAndAddVkeySignature(self_rptr: txn.ptr, key_rptr: self.ptr)
     }
     
 }

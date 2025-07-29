@@ -75,6 +75,10 @@ public class Credential {
         self.ptr = ptr
     }
     
+    public func toHex() throws -> String {
+        return try CSLKit.credentialToHex(self_rptr: self.ptr)
+    }
+    
     public func matches(other: Credential) throws -> Bool {
         let credBytes = try CSLKit.credentialToBytes(self_rptr: self.ptr)
         let otherCredBytes = try CSLKit.credentialToBytes(self_rptr: other.ptr)
