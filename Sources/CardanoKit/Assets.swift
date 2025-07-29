@@ -58,12 +58,12 @@ public class Assets {
         let _oldValue = try CSLKit.assetsInsert(self_rptr: self.ptr, asset_rptr: assetName, value_int: amountBigNum)
     }
     
-    public func get(assetName: String) throws -> Int128? {
+    public func get(assetName: String) throws -> Int64? {
         let assetName = try CSLKit.assetNameNew(name_data: Data(assetName.utf8))
         let amt = try CSLKit.assetsGet(self_rptr: self.ptr, asset_rptr: assetName)
         let amtStr = try CSLKit.bigNumToStr(self_rptr: amt)
         
-        return Int128(amtStr)
+        return Int64(amtStr)
     }
     
     public func length() throws -> Int64 {
