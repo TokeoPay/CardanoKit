@@ -19,11 +19,11 @@ var package = Package(
         .package(url: "https://github.com/tesseract-one/Bip39.swift.git", from: "0.2.0"),
         useLocalCSKKit ?
             .package(
-                name: "csl-mobile-bridge", path: "../csl-mobile-bridge"
+                name: "csl-mobile-bridge", path: "../csl-mobile-bridge/CSLKit"
             ) :
             .package(
                 url: "https://github.com/TokeoPay/csl-mobile-bridge.git",
-                exact: "0.0.1-alpha.5"
+                exact: "0.0.1-alpha.6"
             ),
     ],
     targets: [
