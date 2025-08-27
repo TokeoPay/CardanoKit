@@ -68,13 +68,6 @@ extension Data {
 
 
 
-@Test func go_from_words_to_entropy_and_back() async throws {
-    let dict: Any = ["test", 1231, "next", "other"]
-    
-    
-    
-}
-
 @Test func test_create_new_wallet_words() async throws {
     var wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .PISS_WEAK)
     var words = wallet.getMnumonic()

@@ -9,6 +9,10 @@ public class Address {
     internal var paymentCredential: Credential? = nil
     internal var stakingCredential: Credential? = nil
     
+    public init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Address>) {
+        self.ptr = ptr
+    }
+    
     public init(bech32: String) throws {
         self.ptr = try CSLKit.addressFromBech32(bech_str_str: bech32)
     }
@@ -36,6 +40,12 @@ public class Address {
         return Credential(ptr: try CSLKit.addressPaymentCred(self_rptr: self.ptr), keyHash: nil)
     }
     
+    public func getStakingAddress() throws -> Address? {
+        let rewardAddressPtr = try CSLKit.addressExtractRewardAddress(self_rptr: self.ptr)
+        
+        return try Address(ptr: CSLKit.rewardAddressToAddress(self_rptr: rewardAddressPtr))
+    }
+    
     public func toBytes() throws -> Data {
         do {
             return try CSLKit.addressToBytes(self_rptr: self.ptr)
@@ -50,7 +60,6 @@ public class Address {
     }
     
     public func asHex() throws -> String {
-//        CSLKit.baseAddressNew(network_long: 0, payment_rptr: <#T##OpaqueRustPointer<CSLKit.Types.CSL_Credential>#>, stake_rptr: <#T##OpaqueRustPointer<CSLKit.Types.CSL_Credential>#>)
         return try CSLKit.addressToHex(self_rptr: self.ptr)
     }
 }
