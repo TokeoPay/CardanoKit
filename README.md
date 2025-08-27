@@ -11,28 +11,48 @@ A Swift library for Cardano blockchain integration in iOS applications. CardanoK
 
 ## ✨ Features
 
-- ✅ **Cardano Address Management**: Create, validate, and convert Cardano addresses
-- ✅ **Multiple Address Formats**: Full support for Bech32 and hex address formats
-- ✅ **Payment Credentials**: Extract and work with payment credentials
-- ✅ **Swift-Native API**: Clean, idiomatic Swift interface
-- ✅ **CSL Integration**: Built on the battle-tested Cardano Serialization Library
-- ✅ **iOS Optimized**: Designed specifically for iOS/macOS applications
-- 🚧 **More Features Coming**: Transaction building, staking, and advanced operations
+### Core Wallet Functionality ✅
+- **HD Wallet Creation**: Generate new wallets with 12-24 word mnemonics
+- **Wallet Recovery**: Restore wallets from mnemonic phrases or entropy
+- **Address Generation**: Hierarchical deterministic address derivation
+- **Multiple Address Types**: Payment addresses with staking credential support
+
+### Transaction Operations ✅  
+- **Transaction Parsing**: Parse Cardano transactions from CBOR hex format
+- **Transaction Signing**: Full transaction signing with wallet private keys
+- **UTXO Management**: Handle unspent transaction outputs and collections
+- **Fee Calculation**: Extract transaction fees and metadata
+
+### Address Management ✅
+- **Multiple Address Formats**: Full support for Bech32 and hex address formats
+- **Credential Extraction**: Extract and work with payment/staking credentials
+- **Address Validation**: Validate and convert between address formats
+- **Network Support**: Mainnet and testnet address compatibility
+
+### Developer Experience ✅
+- **Swift-Native API**: Clean, idiomatic Swift interface with modern async/await support
+- **CSL Integration**: Built on the battle-tested Cardano Serialization Library
+- **Memory Safe**: Automatic cleanup of cryptographic resources
+- **iOS/macOS Optimized**: Platform-specific optimizations and integrations
 
 ## Requirements
 
 ### iOS Version
-- **Minimum iOS Version**: iOS 13.0+
-- **Recommended iOS Version**: iOS 14.0+
+- **Minimum iOS Version**: iOS 17.0+
+- **Minimum macOS Version**: macOS 15.0+
 
 ### Swift Version
-- **Minimum Swift Version**: Swift 6.1
+- **Minimum Swift Version**: Swift 6.0
 - **Xcode Version**: Xcode 15.0+
 
+### Dependencies
+- **CSL Mobile Bridge**: 0.0.1-alpha.5 (Cardano Serialization Library)
+- **Bip39.swift**: 0.2.0+ (BIP39 mnemonic support)
+
 ### Supported Devices
-- iPhone (iOS 13.0+)
-- iPad (iOS 13.0+)
-- iPod touch (iOS 13.0+)
+- iPhone (iOS 17.0+)
+- iPad (iOS 17.0+)
+- Mac (macOS 15.0+)
 
 ## Installation
 
@@ -84,12 +104,26 @@ targets: [
 
 ## 🚀 Usage
 
-### Quick Start
+### Quick Start - Wallet Creation
 
 ```swift
 import CardanoKit
 
-// CardanoKit provides simple, clean APIs for Cardano address operations
+// Create a new 24-word wallet
+let wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .SOLID)
+let mnemonic = wallet.getMnumonic()
+print("Generated mnemonic: \(mnemonic.joined(separator: " "))")
+
+// Get payment address
+let paymentAddress = try wallet.getPaymentAddress(index: 0)
+print("Payment address: \(try paymentAddress.asBech32())")
+```
+
+### Quick Start - Address Operations
+
+```swift
+import CardanoKit
+
 let bech32Address = "addr1qydqycuh5r253yp70572k2u80yy7hajyy5r9vd6nl9kcxndftu32t8ma5rrlus948vc8wcm0wj5nq6yz5p532lth67xq4hd8ee"
 
 do {
@@ -110,6 +144,41 @@ do {
 } catch {
     print("Address operation failed: \(error)")
 }
+```
+
+### Wallet Recovery
+
+```swift
+import CardanoKit
+
+// Restore wallet from mnemonic
+let words = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
+let wallet = try CardanoWallet.fromMnemonic(accountIndex: 0, words: words)
+
+// Generate multiple addresses
+for i in 0..<5 {
+    let address = try wallet.getPaymentAddress(index: Int64(i))
+    print("Address \(i): \(try address.asBech32())")
+}
+```
+
+### Transaction Signing
+
+```swift
+import CardanoKit
+
+// Parse a transaction from CBOR hex
+let txHex = "84a300d90102818258207e98967ba336f16739f1465171a2089a16042bdff12dc9d2dfead6234c06aa09010182a3005839110f5ace66a2d997176735c1042d5cbdc69cfed2265fd856d83210d6bf1847f764f368dfa8ca5a4e96ab7fca3bdbc803050b6b9510796c6f01..."
+
+let transaction = try FixedTransaction.fromHex(hex: txHex)
+print("Transaction hash: \(try transaction.hash())")
+print("Transaction fee: \(try transaction.getFee() ?? 0) lovelace")
+
+// Sign transaction with wallet
+let utxos = try TransactionUnspentOutputs()
+// ... add relevant UTXOs ...
+try wallet.signTransaction(transaction: transaction, utxos: utxos)
+print("Signed transaction: \(try transaction.toHex())")
 ```
 
 ### Advanced Usage Examples
