@@ -60,7 +60,7 @@ public class FixedTransactionBody {
     }
     
     public func toRawBytes() throws -> Data {
-        self.ptr.debug(prefix: " >> FixedTransactionBody.toRawBytes()")
+//        self.ptr.debug(prefix: " >> FixedTransactionBody.toRawBytes()")
         return try CSLKit.fixedTransactionBodyOriginalBytes(self_rptr: self.ptr)
     }
 }

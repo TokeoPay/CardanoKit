@@ -16,6 +16,7 @@ public enum WordCount: Int {
 }
 
 public class CardanoWallet {
+    private var network: Int64 = 1
     private var rootKeychain: Keychain
     
     init(keychain: Keychain) {
@@ -38,7 +39,7 @@ public class CardanoWallet {
         CardanoWallet(keychain:try Keychain(strength: wordCount.rawValue))
     }
     
-    public static func fromMnemonic(accountIndex: Int64, words: String) throws  -> CardanoWallet {
+    public static func fromMnemonic(network: Int64 = 0, accountIndex: Int64, words: String) throws  -> CardanoWallet {
         return try CardanoWallet(accountIndex: accountIndex, mnemonic: words)
     }
     
@@ -54,6 +55,14 @@ public class CardanoWallet {
         return try self.rootKeychain.getPaymentKey(index: index)
     }
     
+    public func getStakingPrivateKey(index: Int64) throws -> Bip32PrivateKey {
+        return try self.rootKeychain.getStakingKey(index: index)
+    }
+    
+    public func getStakingAddress(index: Int64 = 0) throws -> StakeAddress {
+        return try StakeAddress(network: network, stake_cred: self.getStakingPrivateKey(index: index).toPublic().credential() )
+    }
+        
     public func signData(data: Data, withAddress: String) throws -> DataSignature? {
         print(">> signData: ", withAddress)
         
@@ -153,7 +162,7 @@ public class CardanoWallet {
 //        print("Spend > PubKey", try paymentKeyHash.toBech32())
 //        print("Stake > PubKey", try stakingKeyHash.toBech32())
         
-        return try Address(paymentCred: paymentKeyHash.credential(), stakingCred: stakingKeyHash.credential())
+        return try Address(network: network, paymentCred: paymentKeyHash.credential(), stakingCred: stakingKeyHash.credential())
     }
 }
 
