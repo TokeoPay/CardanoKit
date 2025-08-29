@@ -3,6 +3,23 @@
 import Foundation
 import CSLKit
 
+public class StakeAddress {
+    var ptr: OpaqueRustPointer<CSLKit.Types.CSL_RewardAddress>
+    
+    init(network: Int64, stake_cred: Credential) throws {
+        self.ptr = try CSLKit.stakeAddressNew(network: network, stake_cred_rptr: stake_cred.ptr)
+    }
+    
+    
+    public func asBech32() throws -> String {
+        return try Address(ptr: CSLKit.stakeAddressToAddress(self_rptr: self.ptr)).asBech32()
+    }
+    
+    public func asHex() throws -> String {
+        return try Address(ptr: CSLKit.stakeAddressToAddress(self_rptr: self.ptr)).asHex()
+    }
+}
+
 public class Address {
     internal var ptr: OpaqueRustPointer<CSLKit.Types.CSL_Address>
     
@@ -21,17 +38,17 @@ public class Address {
         self.ptr = try CSLKit.addressFromHex(hex_str_str: hex)
     }
     
-    public init(paymentCred: Credential, stakingCred: Credential?) throws {
+    public init(network: Int64 = 0, paymentCred: Credential, stakingCred: Credential?) throws {
         self.paymentCredential = paymentCred
         self.stakingCredential = stakingCred
         
         if let stakingCred = stakingCred {
-            paymentCred.ptr.debug(prefix: " >> Using >> PaymentCred >")
-            stakingCred.ptr.debug(prefix: " >> Using >> StakingCred >")
-            let baseAddress = try CSLKit.baseAddressNew(network_long: 0, payment_rptr: paymentCred.ptr, stake_rptr: stakingCred.ptr)
+//            paymentCred.ptr.debug(prefix: " >> Using >> PaymentCred >")
+//            stakingCred.ptr.debug(prefix: " >> Using >> StakingCred >")
+            let baseAddress = try CSLKit.baseAddressNew(network_long: network, payment_rptr: paymentCred.ptr, stake_rptr: stakingCred.ptr)
             self.ptr = try CSLKit.baseAddressToAddress(self_rptr: baseAddress)
         } else {
-            let ea = try CSLKit.enterpriseAddressNew(network_long: 0, payment_rptr: paymentCred.ptr)
+            let ea = try CSLKit.enterpriseAddressNew(network_long: network, payment_rptr: paymentCred.ptr)
             self.ptr = try CSLKit.enterpriseAddressToAddress(self_rptr: ea)
         }
     }
@@ -73,13 +90,13 @@ public class Credential {
     public static func fromKeyHash(keyHash: Ed25519KeyHash) throws -> Credential {
         let hashPtr = keyHash.ptr
         let cred = try CSLKit.credentialFromKeyhash(hash_rptr: hashPtr)
-        cred.debug(prefix: " >> Created Cred")
-        hashPtr.debug(prefix: " >> Created Cred >> From >>")
+//        cred.debug(prefix: " >> Created Cred")
+//        hashPtr.debug(prefix: " >> Created Cred >> From >>")
         return Credential(ptr: cred, keyHash: keyHash)
     }
     
     internal init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Credential>, keyHash: Ed25519KeyHash?) {
-        ptr.debug(prefix: " >> CSL_Credential")
+//        ptr.debug(prefix: " >> CSL_Credential")
         self.keyHash = keyHash
         self.ptr = ptr
     }

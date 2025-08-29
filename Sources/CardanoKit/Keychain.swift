@@ -27,9 +27,7 @@ public class KeyPair {
     
     init(entropy: Data) throws {
         self.privateKey = try CSLKit.bip32PrivateKeyFromBip39Entropy(entropy_data: Data(entropy), password_data: Data())
-        
-        print(" >>  entropy >> privateKey", try CSLKit.bip32PrivateKeyToBech32(self_rptr: self.privateKey))
-        
+                
 //        self.privateKey = try CSLKit.privateKeyFromNormalBytes(bytes_data: Data(entropy))
         self.publicKey = try CSLKit.bip32PrivateKeyToPublic(self_rptr: self.privateKey)
         
@@ -53,7 +51,7 @@ public class Bip32PublicKey {
     private var ptr: OpaqueRustPointer<CSLKit.Types.CSL_Bip32PublicKey>
     
     init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Bip32PublicKey>, parent: Bip32PrivateKey) {
-        ptr.debug(prefix: "Bip32PublicKey")
+//        ptr.debug(prefix: "Bip32PublicKey")
         self.retainedSourceParent = parent
         self.ptr = ptr
     }
@@ -83,7 +81,7 @@ public class Ed25519KeyHash {
     private var retainedSourceParent: Ed25519KeyHashParent? = nil
     
     internal init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Ed25519KeyHash>, parent: Ed25519KeyHashParent) {
-        ptr.debug(prefix: "CSL_Ed25519KeyHash")
+//        ptr.debug(prefix: "CSL_Ed25519KeyHash")
         self.retainedSourceParent = parent
         self.ptr = ptr
     }
@@ -101,7 +99,7 @@ public class Bip32PrivateKey {
     }
     
     init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Bip32PrivateKey>) {
-        ptr.debug(prefix: "Bip32PrivateKey")
+//        ptr.debug(prefix: "Bip32PrivateKey")
         self.ptr = ptr
     }
     
