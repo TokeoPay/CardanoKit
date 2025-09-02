@@ -110,12 +110,6 @@ targets: [
 import CardanoKit
 
 // Create a new wallet with different word counts
-// Available options:
-// .PISS_WEAK (12 words - 128 bits)
-// .LITTLE_BETTER (15 words - 160 bits)
-// .NEARLY_THERE (18 words - 192 bits)
-// .SHOULD_BE_GOOD (21 words - 224 bits)
-// .SOLID (24 words - 256 bits) - Recommended
 
 let wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .SOLID)
 let mnemonic = wallet.getMnumonic()
