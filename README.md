@@ -110,12 +110,6 @@ targets: [
 import CardanoKit
 
 // Create a new wallet with different word counts
-// Available options:
-// .PISS_WEAK (12 words - 128 bits)
-// .LITTLE_BETTER (15 words - 160 bits)
-// .NEARLY_THERE (18 words - 192 bits)
-// .SHOULD_BE_GOOD (21 words - 224 bits)
-// .SOLID (24 words - 256 bits) - Recommended
 
 let wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .SOLID)
 let mnemonic = wallet.getMnumonic()
@@ -633,27 +627,6 @@ CardanoKit is built on proven, battle-tested components:
 - [x] iOS/macOS platform support
 - [x] Comprehensive test coverage
 
-### 🚧 In Progress
-- [ ] Transaction building and signing
-- [ ] Multi-asset support (Native tokens)
-- [ ] Staking operations
-- [ ] Metadata handling
-- [ ] Enhanced error types and messages
-
-### 🔮 Future Releases
-- [ ] Smart contract interaction
-- [ ] Hardware wallet integration
-- [ ] Plutus script support
-- [ ] Advanced transaction features
-- [ ] Comprehensive documentation site
-- [ ] More comprehensive examples and tutorials
-
-### 🎯 Current Focus
-We're currently focusing on:
-1. **Transaction Building**: Core transaction creation and signing functionality
-2. **Multi-Asset Support**: Native token handling and operations
-3. **Enhanced Testing**: Expanding test coverage for all scenarios
-4. **Documentation**: Improving guides and API documentation
 
 ## 🤝 Contributing
 
@@ -688,12 +661,6 @@ swift test
 open Package.swift
 ```
 
-### 🔍 Areas Where We Need Help
-- 🧪 **Testing**: More comprehensive test cases and edge case coverage
-- 📝 **Documentation**: API documentation and usage guides
-- 🔍 **Code Review**: Review pull requests and provide feedback
-- 🐛 **Bug Reports**: Test the library and report any issues
-- ✨ **Feature Requests**: Suggest new features and improvements
 
 ## 💬 Support & Community
 
