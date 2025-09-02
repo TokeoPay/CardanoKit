@@ -109,7 +109,14 @@ targets: [
 ```swift
 import CardanoKit
 
-// Create a new 24-word wallet
+// Create a new wallet with different word counts
+// Available options:
+// .PISS_WEAK (12 words - 128 bits)
+// .LITTLE_BETTER (15 words - 160 bits)
+// .NEARLY_THERE (18 words - 192 bits)
+// .SHOULD_BE_GOOD (21 words - 224 bits)
+// .SOLID (24 words - 256 bits) - Recommended
+
 let wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .SOLID)
 let mnemonic = wallet.getMnumonic()
 print("Generated mnemonic: \(mnemonic.joined(separator: " "))")
@@ -179,6 +186,190 @@ let utxos = try TransactionUnspentOutputs()
 // ... add relevant UTXOs ...
 try wallet.signTransaction(transaction: transaction, utxos: utxos)
 print("Signed transaction: \(try transaction.toHex())")
+```
+
+### Data Signing (CIP-30)
+
+```swift
+import CardanoKit
+
+// Sign arbitrary data with a specific address
+let wallet = try CardanoWallet.fromMnemonic(accountIndex: 0, words: mnemonic)
+let message = "Hello, Cardano!"
+let messageData = Data(message.utf8)
+
+// Sign data with specific address (e.g., address at index 15)
+let signature = try wallet.signData(
+    data: messageData, 
+    withAddress: try wallet.getPaymentAddress(index: 15).asBech32()
+)
+
+print("Signature: \(signature.signature)")
+print("Public Key: \(signature.key)")
+```
+
+### Working with Assets
+
+```swift
+import CardanoKit
+
+// Create and manage multi-assets
+var assets = try Assets()
+
+// Add tokens to the asset collection
+try assets.add(assetName: "MyToken", amount: 100)
+try assets.add(assetName: "MyToken", amount: 50) // Adds to existing
+try assets.add(assetName: "AnotherToken", amount: 25)
+
+// Convert to map for processing
+let assetMap = try await assets.toMap()
+for (asset, quantity) in assetMap {
+    print("Asset: \(asset.name), Quantity: \(quantity)")
+}
+
+// Create a Value object with ADA and tokens
+let value = try Value(ada: BigInt(5_000_000)) // 5 ADA in lovelace
+try value.setMultiAsset(multiAsset: assets.toMultiAsset())
+```
+
+### UTXO Management
+
+```swift
+import CardanoKit
+
+// Create UTXO from hex
+let utxoHex = "828258207233486deda2a6c5258a1c758e48a4e6adf5dd936e448c58819afb97f73e2c65008258390179467c69a9ac66280174d09d62575ba955748b21dec3b483a9469a658df11bbb405a7d1cab4f3041c9ba6efce2edff9b027b6ca4c73e97d3821a004c4b40a1581c2341201e2508eaebd9acaecbaa7630350cee6ebf437c52cc42bab23ea350477265656479476f626c696e733536340151477265656479476f626c696e73313336350151477265656479476f626c696e733333333701"
+let utxo = try TransactionUnspentOutput.fromHex(hex: utxoHex)
+
+// Create UTXO collection
+let utxos = try TransactionUnspentOutputs()
+try utxos.addUtxo(utxo: utxo)
+
+// Extract required signers from transaction
+let requiredSigners = try transaction.getRequiredSignerKeyHashes(utxos: utxos)
+for signer in requiredSigners {
+    print("Required signer: \(signer.hexEncodedString())")
+}
+```
+
+### Wallet Creation from Entropy
+
+```swift
+import CardanoKit
+
+// Create wallet from entropy bytes (16 bytes for 12 words)
+let entropy: [UInt8] = [0xdf, 0x9e, 0xd2, 0x5e, 0xd1, 0x46, 0xbf, 0x43, 
+                        0x33, 0x6a, 0x5d, 0x7c, 0xf7, 0x39, 0x59, 0x94]
+let wallet = try CardanoWallet.fromEntropy(accountIndex: 0, entropy: entropy)
+
+// Get the payment private key in Bech32 format
+let privateKeyBech32 = try wallet.getPaymentPrivateKey().toString()
+print("Private key: \(privateKeyBech32)")
+
+// Generate addresses from entropy-based wallet
+let address = try wallet.getPaymentAddress(index: 0)
+print("Address: \(try address.asBech32())")
+```
+
+### Transaction Analysis
+
+```swift
+import CardanoKit
+
+// Parse and analyze transaction details
+let transaction = try FixedTransaction.fromHex(hex: txCbor)
+
+// Get transaction body for detailed analysis
+let body = try transaction.getBody()
+
+// Analyze inputs
+let inputs = try body.inputs()
+for input in inputs {
+    print("Input TX: \(input.txHash?.utf8 ?? "unknown")#\(input.index)")
+}
+
+// Analyze outputs  
+let outputs = try body.outputs()
+for output in outputs {
+    let address = try output.address.asBech32()
+    let lovelace = output.amount?.lovelace ?? 0
+    print("Output to \(address): \(lovelace) lovelace")
+    
+    // Check for multi-assets
+    if let multiAsset = output.amount?.multiAsset {
+        // Process tokens in this output
+    }
+}
+
+// Extract detailed transaction information
+let provider = TxDetailsFactory(provider: yourDataProvider)
+let txDetails = try provider.makeDetails(transaction: transaction)
+
+// Access summarized inputs and outputs
+for input in txDetails.inputSummary {
+    print("Input: \(input.address) - \(input.value)")
+}
+
+for output in txDetails.outputSummary {
+    print("Output: \(output.address) - \(output.value)")
+}
+```
+
+### Comprehensive Example - Complete Wallet Flow
+
+```swift
+import CardanoKit
+
+// Complete example showing wallet creation, address generation, and transaction signing
+class CardanoWalletExample {
+    
+    func completeWalletFlow() async throws {
+        // 1. Create a new wallet
+        let wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .SOLID)
+        let mnemonic = wallet.getMnumonic()
+        print("Generated wallet with mnemonic: \(mnemonic.joined(separator: " "))")
+        
+        // 2. Generate multiple addresses
+        var addresses: [Address] = []
+        for i in 0..<5 {
+            let address = try wallet.getPaymentAddress(index: Int64(i))
+            addresses.append(address)
+            print("Address \(i): \(try address.asBech32())")
+        }
+        
+        // 3. Sign some data (CIP-30 compatible)
+        let message = "Welcome to Cardano!"
+        let signature = try wallet.signData(
+            data: Data(message.utf8),
+            withAddress: try addresses[0].asBech32()
+        )
+        print("Message signature: \(signature.signature)")
+        
+        // 4. Parse and analyze a transaction
+        let txHex = "84a500818258207233486deda2a6c5258a1c758e48a4e6adf5dd936e448c58819afb97f73e2c6500..."
+        let transaction = try FixedTransaction.fromHex(hex: txHex)
+        
+        // 5. Prepare UTXOs for signing
+        let utxoHex = "828258207233486deda2a6c5258a1c758e48a4e6adf5dd936e448c58819afb97f73e2c65008258390179467c69a9ac66280174d09d62575ba955748b21dec3b483a9469a658df11bbb405a7d1cab4f3041c9ba6efce2edff9b027b6ca4c73e97d3821a004c4b40a1581c2341201e2508eaebd9acaecbaa7630350cee6ebf437c52cc42bab23ea350477265656479476f626c696e733536340151477265656479476f626c696e73313336350151477265656479476f626c696e733333333701"
+        let utxo = try TransactionUnspentOutput.fromHex(hex: utxoHex)
+        let utxos = try TransactionUnspentOutputs()
+        try utxos.addUtxo(utxo: utxo)
+        
+        // 6. Get required signers
+        let requiredSigners = try transaction.getRequiredSignerKeyHashes(utxos: utxos)
+        print("Required signers: \(requiredSigners.count)")
+        
+        // 7. Sign the transaction
+        try wallet.signTransaction(transaction: transaction, utxos: utxos)
+        let signedTxHex = try transaction.toHex()
+        print("Signed transaction ready for submission")
+        
+        // 8. Analyze transaction details
+        let body = try transaction.getBody()
+        let fee = try transaction.getFee() ?? 0
+        print("Transaction fee: \(fee) lovelace (\(Double(fee) / 1_000_000) ADA)")
+    }
+}
 ```
 
 ### Advanced Usage Examples
@@ -258,6 +449,115 @@ struct AddressValidatorView: View {
 }
 ```
 
+#### Transaction Data Provider Implementation
+
+```swift
+import CardanoKit
+
+// Implement a data provider for transaction analysis
+struct MyTransactionDataProvider: TransactionDataProvider {
+    func getUtxos(for transactionInputs: TransactionInputs) throws -> TransactionUnspentOutputs {
+        let utxos = try TransactionUnspentOutputs()
+        
+        try transactionInputs.forEach { input in
+            // Fetch UTXO data from your source (blockchain, database, etc.)
+            let txoHex = fetchTransactionOutput(for: input) // Your implementation
+            let txo = try TransactionOutput(hex: txoHex)
+            try utxos.addUtxo(utxo: TransactionUnspentOutput(input: input, output: txo))
+        }
+        
+        return utxos
+    }
+}
+
+// Use the provider for transaction analysis
+let provider = TxDetailsFactory(provider: MyTransactionDataProvider())
+let txDetails = try provider.makeDetails(transaction: transaction)
+```
+
+#### Comprehensive Wallet Management
+
+```swift
+import CardanoKit
+
+class WalletManager {
+    private let wallet: CardanoWallet
+    
+    init(mnemonic: String, accountIndex: Int32 = 0) throws {
+        self.wallet = try CardanoWallet.fromMnemonic(
+            accountIndex: accountIndex, 
+            words: mnemonic
+        )
+    }
+    
+    // Generate multiple addresses for privacy
+    func generateAddresses(count: Int) throws -> [Address] {
+        return try (0..<count).map { index in
+            try wallet.getPaymentAddress(index: Int64(index))
+        }
+    }
+    
+    // Sign multiple transactions in batch
+    func batchSignTransactions(_ transactions: [FixedTransaction], 
+                              utxos: TransactionUnspentOutputs) throws {
+        for transaction in transactions {
+            try wallet.signTransaction(transaction: transaction, utxos: utxos)
+        }
+    }
+    
+    // Export wallet information securely
+    func exportWalletInfo() throws -> WalletExport {
+        return WalletExport(
+            rootPublicKey: try wallet.getRootPrivateKey().toPublic().toString(),
+            firstAddress: try wallet.getPaymentAddress(index: 0).asBech32(),
+            accountIndex: wallet.accountIndex
+        )
+    }
+}
+
+struct WalletExport {
+    let rootPublicKey: String
+    let firstAddress: String
+    let accountIndex: Int32
+}
+```
+
+#### Multi-Asset Token Management
+
+```swift
+import CardanoKit
+
+class TokenManager {
+    
+    // Create a transaction output with multiple tokens
+    func createMultiAssetOutput(address: Address, 
+                               ada: Int64, 
+                               tokens: [(policyId: String, assetName: String, amount: Int64)]) throws -> TransactionOutput {
+        
+        var value = try Value(ada: BigInt(ada))
+        var multiAsset = try MultiAsset()
+        
+        // Group tokens by policy
+        let tokensByPolicy = Dictionary(grouping: tokens) { $0.policyId }
+        
+        for (policyId, policyTokens) in tokensByPolicy {
+            let policy = try Policy(hex: policyId)
+            var assets = try Assets()
+            
+            for token in policyTokens {
+                try assets.add(assetName: token.assetName, amount: token.amount)
+            }
+            
+            try multiAsset.insert(policy: policy, assets: assets)
+        }
+        
+        try value.setMultiAsset(multiAsset: multiAsset)
+        
+        return try TransactionOutput(address: address, amount: value)
+    }
+}
+```
+
 #### Error Handling Best Practices
 
 ```swift
@@ -267,6 +567,8 @@ enum CardanoKitError: Error {
     case invalidAddress
     case conversionFailed
     case credentialExtractionFailed
+    case insufficientFunds
+    case invalidTransaction
 }
 
 class SafeCardanoOperations {
@@ -289,6 +591,25 @@ class SafeCardanoOperations {
             return .success("Payment credential extracted successfully")
         } catch {
             return .failure(.credentialExtractionFailed)
+        }
+    }
+    
+    func safeTransactionSigning(wallet: CardanoWallet, 
+                               txHex: String, 
+                               utxoHexList: [String]) -> Result<String, CardanoKitError> {
+        do {
+            let transaction = try FixedTransaction.fromHex(hex: txHex)
+            let utxos = try TransactionUnspentOutputs()
+            
+            for utxoHex in utxoHexList {
+                let utxo = try TransactionUnspentOutput.fromHex(hex: utxoHex)
+                try utxos.addUtxo(utxo: utxo)
+            }
+            
+            try wallet.signTransaction(transaction: transaction, utxos: utxos)
+            return .success(try transaction.toHex())
+        } catch {
+            return .failure(.invalidTransaction)
         }
     }
 }
