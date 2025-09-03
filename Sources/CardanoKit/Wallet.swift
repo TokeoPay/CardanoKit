@@ -8,10 +8,10 @@
 import Foundation
 
 public enum WordCount: Int {
-    case PISS_WEAK = 128
-    case LITTLE_BETTER = 160
-    case NEARLY_THERE = 192
-    case SHOULD_BE_GOOD = 224
+    case POOR = 128
+    case WEAK = 160
+    case OKAY = 192
+    case GOOD = 224
     case SOLID = 256
 }
 
