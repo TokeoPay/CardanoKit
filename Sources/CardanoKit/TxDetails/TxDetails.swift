@@ -44,6 +44,12 @@ public class Value: CustomDebugStringConvertible {
         self.lovelace = lovelace
         self.assets = assets
         self.ptr = try CSLKit.valueZero()
+        
+        
+    }
+    
+    public func checkedAdd(other: Value) throws -> Value {
+        return try Value(ptr: CSLKit.valueCheckedAdd(self_rptr: self.ptr, rhs_value_rptr: other.ptr))
     }
     
 //    public func checkedAdd(other: Value) {
@@ -84,7 +90,7 @@ public class TxDetailsFactory {
         self.provider = provider
     }
     
-    public func makeDetails(transaction: FixedTransaction) throws -> TxDetails {
+    public func makeDetails(transaction: FixedTransaction) async throws -> TxDetails {
         let hash = try transaction.hash()
         let fee = try transaction.getFee()!
 
@@ -92,7 +98,7 @@ public class TxDetailsFactory {
 
         let outputs = try txBody.outputs()
 
-        let txInputs = try provider.getUtxos(for: txBody.inputs())
+        let txInputs = try await provider.getUtxos(for: txBody.inputs())
         
         // Inputs from each Credential
         
@@ -117,11 +123,11 @@ public class TxDetailsFactory {
             if let stakingAddress = stakingAddress {
                 let stakingAddress = try stakingAddress.asBech32()
                 
-                if let thing = inputSummary[stakingAddress] {
+                if let amount = inputSummary[stakingAddress] {
                     inputSummary[stakingAddress] = (
                         TxSummary(
                             address: stakingAddress,
-                            value: value
+                            value: try value.checkedAdd(other: amount.value)
                         )
                     )
                 } else {

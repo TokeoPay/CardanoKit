@@ -252,7 +252,7 @@ public class TransactionUnspentOutputs: Sequence {
 }
 
 public class TransactionUnspentOutput {
-    fileprivate var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionUnspentOutput>
+    var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionUnspentOutput>
     
     init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionUnspentOutput>) {
         self.ptr = ptr

@@ -69,22 +69,22 @@ extension Data {
 
 
 @Test func test_create_new_wallet_words() async throws {
-    var wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .PISS_WEAK)
+    var wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .POOR)
     var words = wallet.getMnumonic()
     
     #expect(words.count == 12)
     
-    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .LITTLE_BETTER)
+    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .WEAK)
     words = wallet.getMnumonic()
     
     #expect(words.count == 15)
     
-    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .NEARLY_THERE)
+    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .OKAY)
     words = wallet.getMnumonic()
     
     #expect(words.count == 18)
     
-    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .SHOULD_BE_GOOD)
+    wallet = try CardanoWallet.generate(accountIndex: 0, wordCount: .GOOD)
     words = wallet.getMnumonic()
     
     #expect(words.count == 21)

@@ -17,6 +17,7 @@ var package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/tesseract-one/Bip39.swift.git", from: "0.2.0"),
+        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.10.0")),
         useLocalCSKKit ?
             .package(
                 name: "csl-mobile-bridge", path: "../csl-mobile-bridge/CSLKit"
@@ -35,6 +36,7 @@ var package = Package(
             dependencies: [
                 .product(name: "Bip39", package: "bip39.swift"),
                 .product(name: "CSLKit", package: "csl-mobile-bridge"),
+                .product(name: "Alamofire", package: "Alamofire"),
 //                "msg_signing_lib",
             ],
         ),

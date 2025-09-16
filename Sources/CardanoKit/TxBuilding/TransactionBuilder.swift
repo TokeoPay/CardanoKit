@@ -22,15 +22,29 @@ public class TransactionBuilder {
         _ = try CSLKit.transactionBuilderSetCollateral(self_rptr: self.ptr, collateral_rptr: inputs.ptr)
     }
     
-    public func setCollateralReturn() throws {
-//        try CSLKit.transactionBuilderSetCollateralReturn(self_rptr: self.ptr, collateral_return_rptr: <#T##OpaqueRustPointer<CSLKit.Types.CSL_TransactionOutput>#>)
+    public func setCollateralReturn(txOut: TransactionOutput) throws {
+        try CSLKit.transactionBuilderSetCollateralReturn(self_rptr: self.ptr, collateral_return_rptr:  txOut.ptr)
     }
+    
+    public func setMinFee(fee: Int64) throws {
+        try CSLKit.transactionBuilderSetMinFee(self_rptr: self.ptr, fee_rptr: CSLKit.bigNumFromStr(string_str: "\(fee)"))
+    }
+    
+    public func setValidityPeriod(period: Int64) throws {
+        try CSLKit.transactionBuilderSetValidityStartIntervalBignum(self_rptr: self.ptr, validity_start_interval_rptr: CSLKit.bigNumFromStr(string_str: "\(period)"))
+    }
+    
+    public func setTtl(ttl: Int64) throws {
+        try CSLKit.transactionBuilderSetTtlBignum(self_rptr: self.ptr, ttl_rptr: CSLKit.bigNumFromStr(string_str: "\(ttl)"))
+    }
+    
+    
 }
 
 /*
  
- transactionBuilderSetInputs
- transactionBuilderSetCollateral
+ // transactionBuilderSetInputs
+ // transactionBuilderSetCollateral
  transactionBuilderSetCollateralReturn
  transactionBuilderSetCollateralReturnAndTotal
  transactionBuilderSetTotalCollateral
@@ -82,6 +96,10 @@ public class TxInputsBuilder {
     
     public init() throws {
         self.ptr = try CSLKit.txInputsBuilderNew()
+    }
+    
+    public func addUtxo(utxo: TransactionUnspentOutput) throws {
+        try CSLKit.txInputsBuilderAddRegularUtxo(self_rptr: self.ptr, utxo_rptr: utxo.ptr)
     }
         
     public func getTotalValue() throws -> OpaqueRustPointer<CSLKit.Types.CSL_Value> {

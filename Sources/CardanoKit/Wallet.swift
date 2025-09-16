@@ -177,4 +177,8 @@ public struct DataSignature: Codable {
         }
         return try JSONDecoder().decode(DataSignature.self, from: jsonData)
     }
+    
+    public func forCip30() throws -> String {
+        return String(data: try JSONEncoder().encode(self), encoding: .utf8)!
+    }
 }

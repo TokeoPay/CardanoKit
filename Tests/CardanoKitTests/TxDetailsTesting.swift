@@ -37,14 +37,20 @@ import XCTest
     
     print(">>> Created a TX Data Provider")
     
-    let txDetails = try provider.makeDetails(transaction: fixedTxn)
+    let txDetails = try await provider.makeDetails(transaction: fixedTxn)
     
     print("\n\n\(txDetails.inputSummary.map { return "\($0.address) - \($0.value)" })")
     print("\n\n\(txDetails.outputSummary.map { return "\($0.address) - \($0.value)" }))")
 }
 
 struct TextTxDataProvider: TransactionDataProvider {
-    func getUtxos(for transactionInputs: CardanoKit.TransactionInputs) throws -> CardanoKit.TransactionUnspentOutputs {
+    func getUtxosForMultipleAddresses(addresses: [String]) async throws -> CardanoKit.TransactionUnspentOutputs {
+        let utxos = try TransactionUnspentOutputs()
+
+        return utxos
+    }
+    
+    func getUtxos(for transactionInputs: CardanoKit.TransactionInputs) async throws -> CardanoKit.TransactionUnspentOutputs {
         let utxos = try TransactionUnspentOutputs()
         
         try transactionInputs.forEach { input in

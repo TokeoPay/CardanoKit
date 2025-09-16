@@ -5,7 +5,7 @@
 //  Created by Gavin Harris on 5/8/2025.
 //
 
-protocol TransactionDataProvider {
-    func getUtxos(for transactionInputs: TransactionInputs) throws -> TransactionUnspentOutputs
-    
+public protocol TransactionDataProvider {
+    func getUtxos(for transactionInputs: TransactionInputs) async throws -> TransactionUnspentOutputs
+    func getUtxosForMultipleAddresses(addresses: [String]) async throws -> TransactionUnspentOutputs
 }
