@@ -8,6 +8,23 @@
 import Foundation
 import Alamofire
 
+
+public protocol MaestroAPIProtocol {
+    func request<T: Decodable & Sendable, E: Decodable & Sendable>(
+        path: String,
+        responseType: T.Type,
+        errorType: E.Type
+    ) async throws -> T
+    
+    func requestPost<T: Decodable & Sendable, E: Decodable & Sendable, B: Encodable & Sendable>(
+        path: String,
+        body: B,
+        responseType: T.Type,
+        errorType: E.Type
+    ) async throws -> T
+}
+
+
 public struct MaestroConfig: Sendable {
     public let apiKeyProvider: APIKeyProvider
     public let baseURL: URL
@@ -37,7 +54,7 @@ public struct AnyEncodable: Encodable {
 
 // MARK: - Actor-based API client
 
-public actor MaestroAPI {
+public actor MaestroAPI: MaestroAPIProtocol {
     private let config: MaestroConfig
     private let session: Session
     
@@ -67,7 +84,7 @@ public actor MaestroAPI {
                                  errorType: errorType)
     }
     
-    public func requestPost<T: Decodable & Sendable, E: Decodable & Sendable, B: Encodable>(
+    public func requestPost<T: Decodable & Sendable, E: Decodable & Sendable, B: Encodable & Sendable>(
         path: String,
         body: B,
         responseType: T.Type,
@@ -96,7 +113,7 @@ public actor MaestroAPI {
         let apiKey = await config.apiKeyProvider()
         let url = config.baseURL.appendingPathComponent(path)
         
-        var headers: HTTPHeaders = [
+        let headers: HTTPHeaders = [
             "api-key": apiKey,
             "Content-Type": "application/json"
         ]

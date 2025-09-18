@@ -18,6 +18,7 @@ public enum WordCount: Int {
 public class CardanoWallet {
     private var network: Int64 = 1
     private var rootKeychain: Keychain
+    private var dataProvider: TransactionDataProvider?
     
     init(keychain: Keychain) {
         self.rootKeychain = keychain
@@ -62,7 +63,11 @@ public class CardanoWallet {
     public func getStakingAddress(index: Int64 = 0) throws -> StakeAddress {
         return try StakeAddress(network: network, stake_cred: self.getStakingPrivateKey(index: index).toPublic().credential() )
     }
-        
+    
+    public func addDataProvider(dataProvider: TransactionDataProvider) {
+        self.dataProvider = dataProvider
+    }
+    
     public func signData(data: Data, withAddress: String) throws -> DataSignature? {
         print(">> signData: ", withAddress)
         
@@ -153,6 +158,23 @@ public class CardanoWallet {
     public func getMnumonic() -> [String] {
         self.rootKeychain.getMnumonic()
     }
+    
+    public func newTx() async throws -> TransactionBuilder {
+        guard let dataProvider = self.dataProvider else {
+            throw WalletError.NoDataProviderSet
+        }
+        
+        let config = try await dataProvider.getTransactionBuilderConfig()
+        return try TransactionBuilder(config: config.ptr)
+    }
+    
+    public func getUtxos() async throws -> TransactionUnspentOutputs {
+        guard let dataProvider = self.dataProvider else {
+            throw WalletError.NoDataProviderSet
+        }
+        
+        return try await dataProvider.getUtxosForMultipleAddresses(addresses: [self.getPaymentAddress().asBech32()])
+    }
         
     public func getPaymentAddress(index: Int64 = 0) throws -> Address {
         
@@ -166,6 +188,9 @@ public class CardanoWallet {
     }
 }
 
+public enum WalletError: Error {
+    case NoDataProviderSet
+}
 
 public struct DataSignature: Codable {
     var signature: String

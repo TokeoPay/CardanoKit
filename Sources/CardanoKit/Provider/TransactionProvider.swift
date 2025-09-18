@@ -6,6 +6,7 @@
 //
 
 public protocol TransactionDataProvider {
+    func getTransactionBuilderConfig() async throws -> TransactionBuilderConfig
     func getUtxos(for transactionInputs: TransactionInputs) async throws -> TransactionUnspentOutputs
     func getUtxosForMultipleAddresses(addresses: [String]) async throws -> TransactionUnspentOutputs
 }

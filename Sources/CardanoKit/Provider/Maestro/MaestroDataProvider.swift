@@ -32,6 +32,49 @@ public typealias APIKeyProvider = @Sendable () async -> String
 
 public class MaestroDataProvider: TransactionDataProvider {
     
+    private var transactionBuilderConfig: TransactionBuilderConfig? = nil
+    
+    public func getTransactionBuilderConfig() async throws -> TransactionBuilderConfig {
+        // Return cached config if already built
+        if let cachedConfig = transactionBuilderConfig {
+            return cachedConfig
+        }
+        
+        // Fetch protocol parameters
+        let ppResult = try await self.maestroApi.request(
+            path: "/v1/protocol-parameters",
+            responseType: MaestroResponseSingle<MaestroProtocolParameters>.self,
+            errorType: MaestroAPIError.self
+        )
+        
+        let pp = ppResult.data
+        
+        // Build the config
+        let txBC = try TransactionBuilderConfigBuilder()
+        try txBC.setFeeAlgo(
+            coefficient: "\(pp.minFeeCoefficient)",
+            constant: "\(pp.minFeeConstant.ada.lovelace)"
+        )
+        try txBC.setPoolDeposit(poolDeposit: "\(pp.stakePoolDeposit.ada.lovelace)")
+        try txBC.setKeyDeposit(keyDeposit: "\(pp.stakeCredentialDeposit.ada.lovelace)")
+        try txBC.setCoinsPerUtxoByte(
+            coinsPerUtxoByte: "\(pp.minUtxoDepositCoefficient)"
+        )
+        try txBC.setMaxTxSize(maxTxSize: Int64(pp.maxTransactionSize.bytes))
+        try txBC.setMaxValueSize(maxValueSize: Int64(pp.maxValueSize.bytes))
+        
+        try txBC.setExUnitPrices(
+            mem: pp.scriptExecutionPrices.memory,
+            step: pp.scriptExecutionPrices.cpu
+        )
+                
+        let builtConfig = try txBC.build()
+        transactionBuilderConfig = builtConfig
+        
+        return builtConfig
+    }
+    
+    
     public func getUtxosForMultipleAddresses(addresses: [String]) async throws -> TransactionUnspentOutputs {
         //   https://mainnet.gomaestro-api.org/v1/addresses/utxos
         let utxos = try await self.maestroApi.requestPost(
@@ -106,15 +149,26 @@ public class MaestroDataProvider: TransactionDataProvider {
         return returnUtxos
     }
     
-    private let maestroApi: MaestroAPI
+    private let maestroApi: MaestroAPIProtocol
 //    private var apiKeyProvider: APIKeyProvider
 //    private var network: MaestroNetwork
     
-    init(network: MaestroNetwork, apiKeyProvider: @escaping APIKeyProvider) {
-        self.maestroApi = MaestroAPI(config: MaestroConfig(apiKeyProvider: apiKeyProvider, baseURL: URL(string: network.url)! ))
+    public init(maestroApi: MaestroAPIProtocol) {
+        self.maestroApi = maestroApi
+    }
+    
+    convenience init(network: MaestroNetwork, apiKeyProvider: @escaping APIKeyProvider) {
+        self.init(maestroApi: MaestroAPI(config: MaestroConfig(apiKeyProvider: apiKeyProvider, baseURL: URL(string: network.url)! )))
     }
 }
 
 
 
 
+
+enum StringToFloatError: Error {
+    case invalidFormat(String) // e.g. "abc"
+    case invalidNumerator(String)
+    case invalidDenominator(String)
+    case divisionByZero
+}

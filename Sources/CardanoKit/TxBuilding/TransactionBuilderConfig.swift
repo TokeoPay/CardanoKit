@@ -103,6 +103,35 @@ public class TransactionBuilderConfigBuilder {
         return (finalNumerator, simplifiedDenominator)
     }
     
+    
+    public func setExUnitPrices(mem: String, step: String) throws {
+        
+        let memParts = mem.split(separator: "/")
+        guard memParts.count == 2 else {
+            throw StringToFloatError.invalidFormat(mem)
+        }
+        let stepParts = step.split(separator: "/")
+        guard stepParts.count == 2 else {
+            throw StringToFloatError.invalidFormat(step)
+        }
+                
+        let exUnits = try CSLKit.exUnitPricesNew(
+            mem_price_rptr: CSLKit.unitIntervalNew(
+                numerator_rptr: CSLKit.bigNumFromStr(string_str: memParts[0].lowercased() ),
+                denominator_rptr: CSLKit.bigNumFromStr(string_str: memParts[1].lowercased() )
+            ), step_price_rptr: CSLKit.unitIntervalNew(
+                numerator_rptr: CSLKit.bigNumFromStr(string_str: stepParts[0].lowercased()),
+                denominator_rptr: CSLKit.bigNumFromStr(string_str: stepParts[1].lowercased())
+            )
+        )
+        
+        
+        self.ptr = try CSLKit.transactionBuilderConfigBuilderExUnitPrices(
+            self_rptr: self.ptr,
+            ex_unit_prices_rptr: exUnits
+        )
+    }
+    
     public func setExUnitPrices(mem: Float, steps: Float) throws {
         let memFrac = floatToFraction(mem)
         let stepFrac = floatToFraction(steps)
@@ -170,9 +199,10 @@ public class TransactionBuilderConfigBuilder {
 }
 
 public class TransactionBuilderConfig {
-    private var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionBuilderConfig>
+    var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionBuilderConfig>
     
     internal init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionBuilderConfig>) {
         self.ptr = ptr
     }
+    
 }

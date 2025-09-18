@@ -28,7 +28,7 @@ public class Asset: Hashable {
 }
 
 public class Value: CustomDebugStringConvertible {
-    var ptr: OpaqueRustPointer<CSLKit.Types.CSL_Value>
+    public var ptr: OpaqueRustPointer<CSLKit.Types.CSL_Value>
     var lovelace: Int64
     var assets: MultiAsset
     
@@ -45,6 +45,8 @@ public class Value: CustomDebugStringConvertible {
         self.assets = assets
         self.ptr = try CSLKit.valueZero()
         
+        _ = try CSLKit.valueSetCoin(self_rptr: self.ptr, coin_rptr: CSLKit.bigNumFromStr(string_str: "\(self.lovelace)"))
+        _ = try CSLKit.valueSetMultiasset(self_rptr: self.ptr, multiasset_rptr: assets.ptr)
         
     }
     

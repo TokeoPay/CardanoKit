@@ -8,12 +8,36 @@
 import Foundation
 import CSLKit
 
+extension String {
+    /// Convert a hex string into `Data`
+    /// Returns `nil` if the string is not valid hex
+    func hexToData() -> Data? {
+        var data = Data(capacity: count / 2)
+        let regex = try! NSRegularExpression(pattern: "[0-9a-f]{1,2}", options: .caseInsensitive)
+        regex.enumerateMatches(in: self, range: NSRange(startIndex..., in: self)) { match, _, _ in
+            guard let match = match else { return }
+            let byteString = (self as NSString).substring(with: match.range)
+            guard let num = UInt8(byteString, radix: 16) else { return }
+            data.append(num)
+        }
+        return data.isEmpty ? nil : data
+    }
+}
+
 public class Policy {
     
     fileprivate var ptr: OpaqueRustPointer<CSLKit.Types.CSL_PolicyID>
     
     init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_PolicyID>) {
         self.ptr = ptr
+    }
+    
+    init(hex: String) throws {
+        self.ptr = try CSLKit.policyIDFromHex(hex_str_str: hex)
+    }
+    
+    public func toHex() throws -> String {
+        return try CSLKit.policyIDToHex(self_rptr: self.ptr)
     }
 }
 
@@ -27,6 +51,29 @@ public class MultiAsset: CustomDebugStringConvertible {
     }
     
     var ptr: OpaqueRustPointer<CSLKit.Types.CSL_MultiAsset>
+    
+    public init(from: [String: Int64]) throws {
+        
+        self.ptr = try CSLKit.multiAssetNew()
+        
+        try normalize(from).forEach { (p, a) in
+            let policy = try Policy(hex: p)
+            
+            let assets = try Assets()
+            try a.forEach { (assetName, amount) in
+                _ = try assets.add(assetNameHex: assetName, amount: amount)
+                
+//                if (assetName == "") {
+//                    _ = try assets.add(assetName: assetName, amount: amount)
+//                } else {
+//                    _ = try assets.add(assetNameHex: assetName, amount: amount)
+//                }
+            }
+            
+            _ = try CSLKit.multiAssetInsert(self_rptr: self.ptr, policy: policy.ptr, asset_rptr: assets.ptr)
+        }
+                
+    }
     
     public init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_MultiAsset>?) throws {
         if let ptr {
@@ -42,7 +89,7 @@ public class MultiAsset: CustomDebugStringConvertible {
     
     public func insert(policy: Policy, assets: Assets) throws {
         // This method mutates the internal Rust BTreeMap
-        let _oldValue = try CSLKit.multiAssetInsert(self_rptr: self.ptr, policy: policy.ptr, asset_rptr: assets.ptr)
+        _ = try CSLKit.multiAssetInsert(self_rptr: self.ptr, policy: policy.ptr, asset_rptr: assets.ptr)
     }
     
     public func get(policy: Policy) throws -> Assets {
@@ -65,11 +112,15 @@ public class MultiAsset: CustomDebugStringConvertible {
     public func toValue(lovelace: Int64) throws -> Value {
         
         let valuePtr = try CSLKit.valueNewFromAssets(multiasset_rptr: self.ptr)
-        try CSLKit.valueSetCoin(self_rptr: valuePtr, coin_rptr: CSLKit.bigNumFromStr(string_str: "\(lovelace)"))
+        _ = try CSLKit.valueSetCoin(self_rptr: valuePtr, coin_rptr: CSLKit.bigNumFromStr(string_str: "\(lovelace)"))
         
         return try Value(ptr: valuePtr)
         
     }
+}
+
+public enum AssetNameError: Error {
+    case NameNotHex
 }
 
 public class Assets {
@@ -83,10 +134,24 @@ public class Assets {
         ptr = try CSLKit.assetsNew()
     }
     
+    public func add(assetNameHex: String, amount: Int64) throws {
+        
+        guard let assetNameData = Data(hex: assetNameHex) else {
+            throw AssetNameError.NameNotHex
+        }
+        
+        let assetName = try CSLKit.assetNameNew(name_data: assetNameData)
+        
+        let anHex = try CSLKit.assetNameToHex(self_rptr: assetName)
+        
+        let amountBigNum = try CSLKit.bigNumFromStr(string_str: "\(amount)")
+        _ = try CSLKit.assetsInsert(self_rptr: self.ptr, asset_rptr: assetName, value_int: amountBigNum)
+    }
+    
     public func add(assetName: String, amount: Int64) throws {
         let assetName = try CSLKit.assetNameNew(name_data: Data(assetName.utf8))
         let amountBigNum = try CSLKit.bigNumFromStr(string_str: "\(amount)")
-        let _oldValue = try CSLKit.assetsInsert(self_rptr: self.ptr, asset_rptr: assetName, value_int: amountBigNum)
+        _ = try CSLKit.assetsInsert(self_rptr: self.ptr, asset_rptr: assetName, value_int: amountBigNum)
     }
     
     public func get(assetName: String) throws -> Int64? {
@@ -159,6 +224,14 @@ public class AssetName {
     init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_AssetName>) throws {
         self.ptr = ptr
         self.name = try CSLKit.assetNameToHex(self_rptr: self.ptr)
+    }
+    
+    convenience init(name: Data) throws {
+        try self.init(ptr: try CSLKit.assetNameNew(name_data: name))
+    }
+    
+    public func toJson() throws -> String {
+        return try CSLKit.assetNameToJson(self_rptr: self.ptr)
     }
 }
 

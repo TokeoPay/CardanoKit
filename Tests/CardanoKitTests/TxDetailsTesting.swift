@@ -10,15 +10,15 @@ import XCTest
 @testable import CardanoKit
 
 @Test func assets_testing_insert() async throws {
-    var assets = try Assets()
+    let assets = try Assets()
     try assets.add(assetName: "Test", amount: 3)
     try assets.add(assetName: "Test", amount: 10)
     try assets.add(assetName: "Test2", amount: 1)
     
     let assetMap = try await assets.toMap()
     
-    assetMap.map { (key, value) in
-        print("   \(key.name) - \(value)")
+    assetMap.forEach { (key, value) in
+        print("   \(String(describing: key.name)) - \(value)")
     }
     print(assetMap.isEmpty)
     print(assets)
@@ -43,25 +43,4 @@ import XCTest
     print("\n\n\(txDetails.outputSummary.map { return "\($0.address) - \($0.value)" }))")
 }
 
-struct TextTxDataProvider: TransactionDataProvider {
-    func getUtxosForMultipleAddresses(addresses: [String]) async throws -> CardanoKit.TransactionUnspentOutputs {
-        let utxos = try TransactionUnspentOutputs()
-
-        return utxos
-    }
-    
-    func getUtxos(for transactionInputs: CardanoKit.TransactionInputs) async throws -> CardanoKit.TransactionUnspentOutputs {
-        let utxos = try TransactionUnspentOutputs()
-        
-        try transactionInputs.forEach { input in
-            
-            print(">>> UTXO \(input.txHash?.utf8)#\(input.index)")
-            let txo = try TransactionOutput(hex: "82583901829f189e40ce8ee7bfeb44cba97435fa07f16471dcfdb54dfb71e3208df11bbb405a7d1cab4f3041c9ba6efce2edff9b027b6ca4c73e97d3821a004c4b40a1581c2341201e2508eaebd9acaecbaa7630350cee6ebf437c52cc42bab23ea350477265656479476f626c696e733536340151477265656479476f626c696e73313336350151477265656479476f626c696e733333333701")
-            print("TXO Lovelace: \(txo.amount?.lovelace)")
-            try utxos.addUtxo(utxo: TransactionUnspentOutput(input: input, output: txo))
-        }
-        
-        return utxos
-    }
-}
 

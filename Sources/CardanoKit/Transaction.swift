@@ -203,7 +203,7 @@ public class TransactionInput {
 
 
 public class TransactionUnspentOutputs: Sequence {
-    fileprivate var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionUnspentOutputs>
+    var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionUnspentOutputs>
     var length: Int64
     
     public init() throws {
@@ -320,7 +320,38 @@ public class TransactionOutput {
     init(hex: String) throws {
         self.ptr = try CSLKit.transactionOutputFromHex(hex_str_str: hex)
     }
+    
+    init(address: String, lovelace: Int64, assets: [String: Int64]) throws {
+        let address = try Address(bech32: address)
         
+        let multiAsset = try MultiAsset()
+        
+        try normalize(assets).forEach { (p, a) in
+            
+            let policy = try Policy(hex: p)
+            let assets = try Assets()
+            
+            try a.forEach { (assetName, amount) in
+                
+                try assets.add(assetNameHex: assetName, amount: amount)
+            }
+            
+            try multiAsset.insert(policy: policy, assets: assets)
+        }
+        
+        let value = try Value(lovelace: lovelace, assets: multiAsset)
+        
+        self.ptr = try CSLKit.transactionOutputNew(address_rptr: address.ptr, amount_rptr: value.ptr)
+    }
+    
+        
+    public static func lovelace(toAddress: String, amount: Int64) throws -> TransactionOutput {
+        let address = try Address(bech32: toAddress)
+        let value = try Value(lovelace: amount, assets: MultiAsset())
+        
+        return TransactionOutput(ptr: try CSLKit.transactionOutputNew(address_rptr: address.ptr, amount_rptr: value.ptr))
+    }
+            
     public var address: Address? {
         do {
             let addrPtr = try CSLKit.transactionOutputAddress(self_rptr: self.ptr)
@@ -337,6 +368,37 @@ public class TransactionOutput {
             return nil
         }
     }
+    
+    public func toJson() throws -> String {
+        return try CSLKit.transactionOutputToJson(self_rptr: self.ptr)
+    }
+}
+
+func splitUnit(_ unit: String) -> (policy: String, assetName: String) {
+    // if the whole unit is shorter than or equal to 28 characters
+    if unit.count <= 56 {
+        return (policy: unit, assetName: "")
+    } else {
+        let splitIndex = unit.index(unit.startIndex, offsetBy: 56)
+        let policy = String(unit[..<splitIndex])
+        let assetName = String(unit[splitIndex...])
+        return (policy, assetName)
+    }
+}
+func normalize(_ flat: [String: Int64]) -> [String: [String: Int64]] {
+    var nested = [String: [String: Int64]]()
+    
+    for (unit, amount) in flat {
+        let (policy, assetName) = splitUnit(unit)
+        // ensure the policy dictionary exists
+        if nested[policy] == nil {
+            nested[policy] = [:]
+        }
+        // insert/update the asset name with its amount
+        nested[policy]?[assetName] = amount
+    }
+    
+    return nested
 }
 
 public class Amount {
