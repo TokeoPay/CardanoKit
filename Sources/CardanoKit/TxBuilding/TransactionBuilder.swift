@@ -7,11 +7,18 @@
 import Foundation
 import CSLKit
 
-public class TransactionBuilder {
+public enum NoInputsYet {}
+public enum HasInputs {}
+
+public class TransactionBuilder<State> {
     private var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionBuilder>
     
     public init(config: OpaqueRustPointer<CSLKit.Types.CSL_TransactionBuilderConfig>) throws {
         self.ptr = try CSLKit.transactionBuilderNew(cfg_rptr: config)
+    }
+    
+    internal init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionBuilder>) {
+        self.ptr = ptr
     }
     
     public func setInputs(inputs: TxInputsBuilder) throws -> TransactionBuilder {
@@ -26,46 +33,28 @@ public class TransactionBuilder {
     This automatically selects and adds inputs from {inputs} consisting of just enough to cover the outputs that have already been added. This should be called after adding all certs/ outputs/ etc and will be an error otherwise. Uses CIP2: https:// github. com/ cardano-foundation/ CIPs/ blob/ master/ CIP-0002/ CIP-0002.md
     Adding a change output must be called after via TransactionBuilder::add_change_if_needed() This function, diverging from CIP2, takes into account fees and will attempt to add additional inputs to cover the minimum fees. This does not, however, set the txbuilder's fee.
      */
-    public func addInputsFrom(inputs: TransactionUnspentOutputs, strategy: CSLKit.CoinSelectionStrategy = CSLKit.CoinSelectionStrategy.RandomImproveMultiAsset) throws -> TransactionBuilder {
+    public func addInputsFrom(inputs: TransactionUnspentOutputs, strategy: CSLKit.CoinSelectionStrategy = CSLKit.CoinSelectionStrategy.RandomImproveMultiAsset) throws -> TransactionBuilder<HasInputs> {
+        
         _ = try CSLKit.transactionBuilderAddInputsFrom(self_rptr: self.ptr, inputs_rptr: inputs.ptr, strategy: strategy)
-        return self
+        return TransactionBuilder<HasInputs>(ptr: self.ptr)
     }
-    
-//    public func addOutput(toAddress: String, lovelace: Int64, assets: [String: Int64]) throws -> TransactionBuilder {
-//        
-//        let address = Address(bech32: toAddress)
-//        
-//        let outputBuilder = try CSLKit.transactionOutputBuilderNew()
-//        try CSLKit.transactionOutputBuilderWithAddress(self_rptr: outputBuilder, address_rptr: address.ptr)
-//        var outputAmountBuilder = try CSLKit.transactionOutputBuilderNext(self_rptr: outputBuilder)
-//        
-//        outputAmountBuilder = try CSLKit.transactionOutputAmountBuilderWithCoin(self_rptr: outputAmountBuilder, coin_rptr: CSLKit.bigNumFromStr(string_str: "\(lovelace)"))
-//        
-//        Value(lovelace: lovelace, assets: <#T##MultiAsset#>)
-//        
-//        assets.forEach { (unit, amount) in
-//            outputAmountBuilder = try CSLKit.transactionOutputAmountBuilderWithCoinAndAsset(self_rptr: <#T##OpaqueRustPointer<CSLKit.Types.CSL_TransactionOutputAmountBuilder>#>, coin_rptr: <#T##OpaqueRustPointer<CSLKit.Types.CSL_BigNum>#>, multiasset_rptr: <#T##OpaqueRustPointer<CSLKit.Types.CSL_MultiAsset>#>)
-//        }
-//        
-//        
-//    }
-    
-    public func addOutput(output: TransactionOutput) throws -> TransactionBuilder {
+        
+    public func addOutput(output: TransactionOutput) throws -> TransactionBuilder<State> where State == NoInputsYet {
         _ = try CSLKit.transactionBuilderAddOutput(self_rptr: self.ptr, output_rptr: output.ptr)
         return self
     }
     
-    public func setChangeAddress(address: Address) throws -> TransactionBuilder {
+    public func setChangeAddress(address: Address) throws -> TransactionBuilder<HasInputs> {
         _ = try CSLKit.transactionBuilderAddChangeIfNeeded(self_rptr: self.ptr, address_rptr: address.ptr)
-        return self
+        return TransactionBuilder<HasInputs>(ptr: self.ptr)
     }
     
-    public func setCollateral(inputs: TxInputsBuilder) throws -> TransactionBuilder {
+    public func setCollateral(inputs: TxInputsBuilder) throws -> TransactionBuilder<State> where State == NoInputsYet {
         _ = try CSLKit.transactionBuilderSetCollateral(self_rptr: self.ptr, collateral_rptr: inputs.ptr)
         return self
     }
     
-    public func setCollateralReturn(txOut: TransactionOutput) throws -> TransactionBuilder {
+    public func setCollateralReturn(txOut: TransactionOutput) throws -> TransactionBuilder<State> where State == NoInputsYet {
         _ = try CSLKit.transactionBuilderSetCollateralReturn(self_rptr: self.ptr, collateral_return_rptr:  txOut.ptr)
         return self
     }
@@ -86,7 +75,7 @@ public class TransactionBuilder {
         return self
     }
     
-    public func build() throws -> FixedTransaction {
+    public func build() throws -> FixedTransaction where State == HasInputs {
         let transactionPtr = try CSLKit.transactionBuilderBuildTx(self_rptr: self.ptr)
         
         let txHex = try CSLKit.transactionToHex(self_rptr: transactionPtr)

@@ -159,7 +159,7 @@ public class CardanoWallet {
         self.rootKeychain.getMnumonic()
     }
     
-    public func newTx() async throws -> TransactionBuilder {
+    public func newTx() async throws -> TransactionBuilder<NoInputsYet> {
         guard let dataProvider = self.dataProvider else {
             throw WalletError.NoDataProviderSet
         }
