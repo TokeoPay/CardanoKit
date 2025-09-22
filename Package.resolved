@@ -1,5 +1,5 @@
 {
-  "originHash" : "beb383bc450fa5f782c068ce06b4c9d8ce0470591c8cc561d44fdb12be30dd59",
+  "originHash" : "2a45cf5b137fe4aef38c831335bd179eed50222167cbbda45ed1661292b429f7",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "bb2b82539d685e1457493b695cdc8e4dcff97c92",
         "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "csl-mobile-bridge",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/TokeoPay/csl-mobile-bridge.git",
+      "state" : {
+        "revision" : "91082fe147810553d8953e2039cb3ba0a618729d",
+        "version" : "0.0.1-alpha.15"
       }
     },
     {

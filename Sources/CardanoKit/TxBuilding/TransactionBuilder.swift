@@ -44,6 +44,11 @@ public class TransactionBuilder<State> {
         return self
     }
     
+    public func addCertificates(cert_builder: CertificatesBuilder) throws -> TransactionBuilder<State> where State == NoInputsYet {
+        _ = try CSLKit.transactionBuilderSetCertsBuilder(self_rptr: self.ptr, certs_rptr: cert_builder.ptr)
+        return self
+    }
+    
     public func setChangeAddress(address: Address) throws -> TransactionBuilder<HasInputs> {
         _ = try CSLKit.transactionBuilderAddChangeIfNeeded(self_rptr: self.ptr, address_rptr: address.ptr)
         return TransactionBuilder<HasInputs>(ptr: self.ptr)
@@ -93,55 +98,71 @@ public class TransactionBuilder<State> {
 }
 
 
-
-/*
- 
- // transactionBuilderSetInputs
- // transactionBuilderSetCollateral
- transactionBuilderSetCollateralReturn
- transactionBuilderSetCollateralReturnAndTotal
- transactionBuilderSetTotalCollateral
- transactionBuilderSetTotalCollateralAndReturn
- transactionBuilderSetFee
- transactionBuilderSetMinFee
- transactionBuilderSetTtl
- transactionBuilderSetTtlBignum
- transactionBuilderSetValidityStartInterval
- transactionBuilderSetValidityStartIntervalBignum
- transactionBuilderSetCerts
- transactionBuilderSetCertsBuilder
- transactionBuilderSetWithdrawals
- transactionBuilderSetWithdrawalsBuilder
- transactionBuilderSetVotingBuilder
- transactionBuilderSetVotingProposalBuilder
- transactionBuilderSetAuxiliaryData
- transactionBuilderSetMetadata
- transactionBuilderSetMintBuilder
- transactionBuilderSetMint
- transactionBuilderSetMintAsset
- transactionBuilderSetDonation
- transactionBuilderSetCurrentTreasuryValue
- transactionBuilderSetScriptDataHash
- 
- transactionBuilderAddInputsFrom
- transactionBuilderAddReferenceInput
- transactionBuilderAddScriptReferenceInput
- transactionBuilderAddKeyInput
- transactionBuilderAddNativeScriptInput
- transactionBuilderAddPlutusScriptInput
- transactionBuilderAddBootstrapInput
- transactionBuilderAddRegularInput
- transactionBuilderAddInputsFromAndChangeWithCollateralReturn
- transactionBuilderAddOutput
- transactionBuilderAddMetadatum
- transactionBuilderAddJsonMetadatum
- transactionBuilderAddJsonMetadatumWithSchema
- transactionBuilderAddMintAsset
- transactionBuilderAddMintAssetAndOutput
- transactionBuilderAddMintAssetAndOutputMinRequiredCoin
- transactionBuilderAddExtraWitnessDatum
- transactionBuilderAddRequiredSigner
- */
+public class CertificatesBuilder {
+    var ptr: OpaqueRustPointer<CSLKit.Types.CSL_CertificatesBuilder>
+    
+    init() throws {
+        ptr = try CSLKit.certificatesBuilderNew()
+    }
+    
+    public func addStakeDelegation(stake_address: StakeAddress, pool_key_hash: Ed25519KeyHash) throws -> CertificatesBuilder {
+        
+        try addCert(
+            cert:
+                CSLKit.certificateNewStakeDelegation(
+                    stake_delegation_rptr: CSLKit.stakeDelegationNew(stake_credential_rptr: stake_address.credential().ptr, pool_keyhash_rptr: pool_key_hash.ptr)
+            ))
+        return self
+    }
+    
+    public func addStakeRegistration(stake_address: StakeAddress) throws -> CertificatesBuilder {
+        try addCert(
+            cert: CSLKit.certificateNewRegCert(
+                stake_registration_rptr: CSLKit.stakeRegistrationNew(stake_credential_rptr: stake_address.credential().ptr)
+            )
+        )
+        return self
+    }
+    
+    public func addStakeDeregistration(stake_address: StakeAddress) throws -> CertificatesBuilder {
+        try addCert(
+            cert: CSLKit.certificateNewStakeDeregistration(
+                stake_deregistration_rptr: CSLKit.stakeDeregistrationNew(stake_credential_rptr: stake_address.credential().ptr)
+            )
+        )
+        return self
+    }
+    
+    public enum DRep {
+        case AlwaysAbstain
+        case AlwaysNoConfidence
+        //TODO: Need to support DRep allocation - need to know how users will supply a DRep to delegate their vote to
+    }
+    
+    public func addVoteDelegation(stake_address: StakeAddress, drep: DRep) throws -> CertificatesBuilder {
+        
+        let theDRep = switch drep {
+        case .AlwaysAbstain:
+            try CSLKit.dRepNewAlwaysAbstain()
+        case .AlwaysNoConfidence:
+            try CSLKit.dRepNewAlwaysNoConfidence()
+//        default:
+//            try CSLKit.dRepNewAlwaysAbstain()
+        }
+        
+        try addCert(
+            cert: CSLKit.certificateNewVoteDelegation(
+                vote_delegation_rptr: CSLKit.voteDelegationNew(stake_credential_rptr: stake_address.credential().ptr, drep_rptr: theDRep)
+            )
+        )
+        
+        return self
+    }
+    
+    func addCert(cert: OpaqueRustPointer<CSLKit.Types.CSL_Certificate>) throws {
+        _ = try CSLKit.certificatesBuilderAddCertificate(self_rptr: self.ptr, cert_rptr: cert)
+    }
+}
 
 public class TxInputsBuilder {
     
@@ -152,7 +173,7 @@ public class TxInputsBuilder {
     }
     
     public func addUtxo(utxo: TransactionUnspentOutput) throws {
-        try CSLKit.txInputsBuilderAddRegularUtxo(self_rptr: self.ptr, utxo_rptr: utxo.ptr)
+        _ = try CSLKit.txInputsBuilderAddRegularUtxo(self_rptr: self.ptr, utxo_rptr: utxo.ptr)
     }
         
     public func getTotalValue() throws -> OpaqueRustPointer<CSLKit.Types.CSL_Value> {

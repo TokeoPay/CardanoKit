@@ -9,14 +9,19 @@ public class StakeAddress {
     init(network: Int64, stake_cred: Credential) throws {
         self.ptr = try CSLKit.stakeAddressNew(network: network, stake_cred_rptr: stake_cred.ptr)
     }
-    
-    
+        
     public func asBech32() throws -> String {
         return try Address(ptr: CSLKit.stakeAddressToAddress(self_rptr: self.ptr)).asBech32()
     }
     
     public func asHex() throws -> String {
         return try Address(ptr: CSLKit.stakeAddressToAddress(self_rptr: self.ptr)).asHex()
+    }
+    
+    public func credential() throws -> Credential {
+        let addrPtr = try CSLKit.rewardAddressToAddress(self_rptr: self.ptr)
+        
+        return try Credential(ptr: CSLKit.addressPaymentCred(self_rptr: addrPtr), keyHash: nil)
     }
 }
 
@@ -83,7 +88,7 @@ public class Address {
 
 
 public class Credential {
-    fileprivate var ptr: OpaqueRustPointer<CSLKit.Types.CSL_Credential>
+    public var ptr: OpaqueRustPointer<CSLKit.Types.CSL_Credential>
     
     private var keyHash: Ed25519KeyHash? = nil
     

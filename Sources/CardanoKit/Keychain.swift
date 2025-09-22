@@ -86,6 +86,10 @@ public class Ed25519KeyHash {
         self.ptr = ptr
     }
     
+    public init(hex: String) throws {
+        self.ptr = try CSLKit.ed25519KeyHashFromHex(hex_str: hex)
+    }
+    
     public func toHex() throws -> String {
         return try CSLKit.ed25519KeyHashToHex(self_rptr: self.ptr)
     }

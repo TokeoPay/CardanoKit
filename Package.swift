@@ -4,7 +4,7 @@
 import PackageDescription
 import CompilerPluginSupport
 
-let useLocalCSKKit = true
+let useLocalCSKKit = false
 
 var package = Package(
     name: "CardanoKit",
@@ -24,7 +24,7 @@ var package = Package(
             ) :
             .package(
                 url: "https://github.com/TokeoPay/csl-mobile-bridge.git",
-                exact: "0.0.1-alpha.12"
+                exact: "0.0.1-alpha.15"
             ),
     ],
     targets: [

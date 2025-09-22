@@ -41,9 +41,16 @@ import XCTest
     print(try output.toJson())
     
     let start = CFAbsoluteTimeGetCurrent()
+    
+    let certs = try CertificatesBuilder()
+        .addStakeDelegation(stake_address: wallet.getStakingAddress(), pool_key_hash: Ed25519KeyHash(hex: "3b3327c0a885ba7c1ebeec8b44158aab79c32148d45b4c701344cd97"))
+        .addVoteDelegation(stake_address: wallet.getStakingAddress(), drep: .AlwaysAbstain)
+    
+    
     let transaction = try await wallet.newTx()
         .addOutput(output: output)
         .addOutput(output: output2)
+        .addCertificates(cert_builder: certs)
         .addInputsFrom(inputs: walletUtxos, strategy: .RandomImproveMultiAsset)
         .setChangeAddress(address: changeAddress)
         .build()
