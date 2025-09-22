@@ -4,7 +4,7 @@
 import PackageDescription
 import CompilerPluginSupport
 
-let useLocalCSKKit = false
+let useLocalCSKKit = true
 
 var package = Package(
     name: "CardanoKit",

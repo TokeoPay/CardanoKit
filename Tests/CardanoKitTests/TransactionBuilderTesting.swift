@@ -21,35 +21,41 @@ import XCTest
     print("Change Address: \(changeAddress)")
     print("Receive Address: \(receiveAddress)")
     
-    let mockAPI = getMockAPI(address: try receiveAddress.asBech32())
+    let mockAPI = try getMockAPI(address: try receiveAddress.asBech32())
     
     let provider = MaestroDataProvider(maestroApi: mockAPI)
     
     wallet.addDataProvider(dataProvider: provider)
     
     let walletUtxos = try await wallet.getUtxos()
+    print("Walelt UTxOs: \(try walletUtxos.toJson())")
+    
     let output = try TransactionOutput(
         address: receiveAddress.asBech32(),
         lovelace: 5_000_000,
         assets: ["83cb87b69639e20d7c99755fcfc310fb47882c3591778a3c869ea34c417473756b6f34383138": 1]
     )
     
-    let output2 = try TransactionOutput(address: receiveAddress2.asBech32(), lovelace: 2_000_000, assets: ["a7bf4ce10dca4f5f99b081c4ea84e0e3f919775b953324e09edea852536865446576696c7331333636": 1])
+    let output2 = try TransactionOutput(address: receiveAddress2.asBech32(), lovelace: 2_000_000, assets: ["53c07e65e63a4b49ce3810cea982370d115f3b699018a9378838574a446f6e6174696f6e202331333038": 1])
     
     print(try output.toJson())
     
     let start = CFAbsoluteTimeGetCurrent()
     let transaction = try await wallet.newTx()
-        .addInputsFrom(inputs: walletUtxos)
         .addOutput(output: output)
         .addOutput(output: output2)
+        .addInputsFrom(inputs: walletUtxos, strategy: .RandomImproveMultiAsset)
         .setChangeAddress(address: changeAddress)
         .build()
     
     let diff = CFAbsoluteTimeGetCurrent() - start
-    
-    
     print("Execution time: \(diff) seconds")
+    
+    let txDetails = try await TxDetailsFactory(provider: provider)
+        .makeDetails(transaction: transaction)
+    
+    print(txDetails.inputSummary)
+    
     
     print(try transaction.toHex())
 }

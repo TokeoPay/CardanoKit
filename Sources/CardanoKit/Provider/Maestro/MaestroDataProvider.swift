@@ -122,7 +122,7 @@ public class MaestroDataProvider: TransactionDataProvider {
                 return ""
             }
             
-            return "\(txHash)#\(String(describing: index))"
+            return "\(txHash)#\(txIndex)"
         }
         
         let utxos = try await self.maestroApi.requestPost(

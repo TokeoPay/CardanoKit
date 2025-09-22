@@ -221,6 +221,10 @@ public class TransactionUnspentOutputs: Sequence {
         length += 1
     }
     
+    public func toJson() throws -> String {
+        return try CSLKit.transactionUnspentOutputsToJson(self_rptr: self.ptr)
+    }
+    
     public func makeIterator() -> Iterator {
         return Iterator(parent: self)
     }
