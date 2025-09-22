@@ -136,7 +136,7 @@ public class CertificatesBuilder {
     public enum DRep {
         case AlwaysAbstain
         case AlwaysNoConfidence
-        //TODO: Need to support DRep allocation - need to know how users will supply a DRep to delegate their vote to
+        case DelegateToBech32(String)
     }
     
     public func addVoteDelegation(stake_address: StakeAddress, drep: DRep) throws -> CertificatesBuilder {
@@ -146,8 +146,8 @@ public class CertificatesBuilder {
             try CSLKit.dRepNewAlwaysAbstain()
         case .AlwaysNoConfidence:
             try CSLKit.dRepNewAlwaysNoConfidence()
-//        default:
-//            try CSLKit.dRepNewAlwaysAbstain()
+        case .DelegateToBech32(let bech32):
+            try CSLKit.dRepFromBech32(bech32_str_str: bech32)
         }
         
         try addCert(
