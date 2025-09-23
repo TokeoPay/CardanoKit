@@ -33,7 +33,10 @@ import XCTest
     let output = try TransactionOutput(
         address: receiveAddress.asBech32(),
         lovelace: 5_000_000,
-        assets: ["83cb87b69639e20d7c99755fcfc310fb47882c3591778a3c869ea34c417473756b6f34383138": 1]
+        assets: [
+            "83cb87b69639e20d7c99755fcfc310fb47882c3591778a3c869ea34c417473756b6f34383138": 1,
+            "fc11a9ef431f81b837736be5f53e4da29b9469c983d07f321262ce614652454e": 20000
+        ]
     )
     
     let output2 = try TransactionOutput(address: receiveAddress2.asBech32(), lovelace: 2_000_000, assets: ["53c07e65e63a4b49ce3810cea982370d115f3b699018a9378838574a446f6e6174696f6e202331333038": 1])
@@ -44,13 +47,34 @@ import XCTest
     
     let certs = try CertificatesBuilder()
         .addStakeDelegation(stake_address: wallet.getStakingAddress(), pool_key_hash: Ed25519KeyHash(hex: "3b3327c0a885ba7c1ebeec8b44158aab79c32148d45b4c701344cd97"))
-        .addVoteDelegation(stake_address: wallet.getStakingAddress(), drep: .AlwaysAbstain)
+        .addVoteDelegation(stake_address: wallet.getStakingAddress(), drep: .DelegateToBech32("drep1ytcw6qzpqqclx2yd0zy64ztvlkkhnf6yrzza8whgnq4vz5gh89626") )
     
+    let mintScript = try NativeScript(json: """
+        {
+            "ScriptAll": {
+                "native_scripts": [
+                    {
+                        "TimelockExpiry": {
+                          "slot": "93121875"
+                        }
+                    },
+                    {
+                        "ScriptPubkey": {
+                          "addr_keyhash": "24c75fefdf94496f8fd386648bc5edc20a7469282c5359c9745abaca"
+                        }
+                    }
+                ]
+            }
+        }
+        """)
+    
+    let mintAssetName = try AssetName(name: Data("CSLKit".utf8))
     
     let transaction = try await wallet.newTx()
         .addOutput(output: output)
         .addOutput(output: output2)
         .addCertificates(cert_builder: certs)
+        .addMint(native_script: mintScript, asset_name: mintAssetName, amount: 1)
         .addInputsFrom(inputs: walletUtxos, strategy: .RandomImproveMultiAsset)
         .setChangeAddress(address: changeAddress)
         .build()

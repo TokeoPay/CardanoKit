@@ -26,6 +26,18 @@ public class TransactionBuilder<State> {
         return self
     }
     
+    public func addMint(native_script: NativeScript, asset_name: AssetName, amount: Int64) throws -> TransactionBuilder {
+        
+        _ = try CSLKit.transactionBuilderAddMintAsset(
+                self_rptr: self.ptr,
+                policy_script_rptr: native_script.ptr,
+                asset_name_rptr: asset_name.ptr,
+                amount_rptr: CSLKit.intFromStr(string_str: "\(amount)")
+        )
+        
+        return self
+    }
+    
     /**
    The addInputsFrom method should be called after all Outputs, Certificates etc have been added.
  
