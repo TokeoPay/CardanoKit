@@ -321,11 +321,11 @@ public class TransactionOutput {
         self.ptr = ptr
     }
     
-    init(hex: String) throws {
+    public init(hex: String) throws {
         self.ptr = try CSLKit.transactionOutputFromHex(hex_str_str: hex)
     }
     
-    init(address: String, lovelace: Int64, assets: [String: Int64]) throws {
+    public init(address: String, lovelace: Int64, assets: [String: Int64]) throws {
         let address = try Address(bech32: address)
         
         let multiAsset = try MultiAsset()

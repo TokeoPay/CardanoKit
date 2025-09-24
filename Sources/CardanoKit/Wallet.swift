@@ -155,6 +155,31 @@ public class CardanoWallet {
         
     }
     
+    public func discoverAccountAddresses() async throws {
+//        guard let dataProvider = self.dataProvider else {
+//            throw WalletError.NoDataProviderSet
+//        }
+//        
+//        let stakeAddress = try self.getStakingAddress().asBech32()
+//        
+//        let accountAddresses = try await dataProvider.getStakeAccountAddresses(stake_account_address: stakeAddress)
+//        
+//        let foundAddresses: [String: AddressMapping] = [:]
+//        
+//        try (0...accountAddresses.count + 20).forEach { index in
+//            let myCred = try getPaymentPrivateKey(index: Int64(index)).toPublic().credential()
+//            
+//            if let address = try accountAddresses.first(where: { if let cred = $0.paymentCredential { try myCred.matches(other: cred) } else { false }  }) {
+//                foundAddresses
+//            }
+//            
+//            
+//        }
+//        
+//        getPaymentPrivateKey().toPublic().credential().matches(other: <#T##Credential#>)
+        
+    }
+    
     public func getMnumonic() -> [String] {
         self.rootKeychain.getMnumonic()
     }
@@ -187,6 +212,22 @@ public class CardanoWallet {
         return try Address(network: network, paymentCred: paymentKeyHash.credential(), stakingCred: stakingKeyHash.credential())
     }
 }
+
+private enum AddressType {
+    case Payment
+    case Staking
+    case DRep
+}
+
+private struct AddressMapping: Sendable {
+    var type: AddressType
+    var index: Int64
+    var credHash: String
+}
+
+
+
+
 
 public enum WalletError: Error {
     case NoDataProviderSet

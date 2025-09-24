@@ -87,8 +87,24 @@ import XCTest
     
     print(txDetails.inputSummary)
     
-    
     print(try transaction.toHex())
+    
+    
+    
+    let outputStays = try TransactionOutput(
+        address: changeAddress.asBech32(),
+        lovelace: 5_000_000,
+        assets: [:]
+    )
+    
+    
+    let send_all_txn = try await wallet.newTx()
+        .addOutput(output: outputStays)
+        .addInputsFrom(inputs: walletUtxos)
+        .setChangeAddress(address: receiveAddress2)
+        .build()
+    
+    print(try send_all_txn.toHex())
 }
 
 @Test func createMultiAssetFromMap() throws {
