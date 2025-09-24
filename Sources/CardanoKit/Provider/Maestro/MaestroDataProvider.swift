@@ -149,6 +149,21 @@ public class MaestroDataProvider: TransactionDataProvider {
         return returnUtxos
     }
     
+    public func getStakeAccountAddresses(stake_account_address: String) async throws -> [Address] {
+//        https://mainnet.gomaestro-api.org/v1/accounts/{stake_addr}/addresses
+        
+        let addresses = try await self.maestroApi.request(
+            path: "/v1/accounts/\(stake_account_address)/addresses",
+            responseType: MaestroResponseSingle<Array<String>>.self,
+            errorType: MaestroAPIError.self
+        )
+        
+        return try addresses.data.map { address in
+            try Address(bech32: address)
+        }
+        
+    }
+    
     private let maestroApi: MaestroAPIProtocol
 //    private var apiKeyProvider: APIKeyProvider
 //    private var network: MaestroNetwork
@@ -157,7 +172,10 @@ public class MaestroDataProvider: TransactionDataProvider {
         self.maestroApi = maestroApi
     }
     
-    convenience init(network: MaestroNetwork, apiKeyProvider: @escaping APIKeyProvider) {
+    /**
+     Main initaliser
+     */
+    public convenience init(network: MaestroNetwork, apiKeyProvider: @escaping APIKeyProvider) {
         self.init(maestroApi: MaestroAPI(config: MaestroConfig(apiKeyProvider: apiKeyProvider, baseURL: URL(string: network.url)! )))
     }
 }
