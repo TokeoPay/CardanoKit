@@ -172,6 +172,14 @@ public class CardanoWallet {
         
     }
     
+    public func submitTransaction(transaction: FixedTransaction) async throws -> String {
+        guard let dataProvider = self.dataProvider else {
+            throw WalletError.NoDataProviderSet
+        }
+        
+        return try await dataProvider.submit(transaction: transaction)
+    }
+    
     public func getMnumonic() -> [String] {
         self.rootKeychain.getMnumonic()
     }

@@ -11,6 +11,7 @@ public protocol TransactionDataProvider {
     func getUtxosForMultipleAddresses(addresses: [String]) async throws -> TransactionUnspentOutputs
     func getStakeAccountAddresses(stake_account_address: String) async throws -> [Address]
     func coinsPerUtxoByte() async throws -> Int
+    func submit(transaction: FixedTransaction) async throws -> String
     
     /**
      TODO:

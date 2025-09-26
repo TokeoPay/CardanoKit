@@ -42,6 +42,12 @@ public class MaestroDataProvider: TransactionDataProvider {
         return pp.minUtxoDepositCoefficient
     }
     
+    public func submit(transaction: FixedTransaction) async throws -> String {
+        let response = try await self.maestroApi.requestPost(path: "/v1/txmanager", body: transaction.toHex(), responseType: String.self, errorType: MaestroAPIError.self)
+        
+        return response
+    }
+    
     func getProtocolParams() async throws -> MaestroProtocolParameters {
         
         if let pp = self.protocolParams {

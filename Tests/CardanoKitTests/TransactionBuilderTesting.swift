@@ -114,7 +114,7 @@ import XCTest
     
     print(try transaction.toHex())
     
-    
+    #expect(try await wallet.submitTransaction(transaction: transaction) == txDetails.hash)
     
     let outputStays = try TransactionOutput(
         address: changeAddress.asBech32(),

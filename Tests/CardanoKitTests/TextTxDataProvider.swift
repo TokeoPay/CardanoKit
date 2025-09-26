@@ -24,6 +24,8 @@ public func getMockAPI(address: String) throws -> MockMaestroAPI {
     mockAPI.requestPostHandler = { path, body in
         
         switch path {
+        case "/v1/txmanager":
+            return try FixedTransaction(hex: body as! String).hash()
         case "/v1/addresses/utxos?with_cbor=true":
             
             return addressUtxos
@@ -102,6 +104,9 @@ struct TextTxDataProvider: TransactionDataProvider {
         return 1000000
     }
     
+    public func submit(transaction: FixedTransaction) async throws -> String {
+        return try transaction.hash()
+    }
     
     func getStakeAccountAddresses(stake_account_address: String) async throws -> [Address] {
         let addresses = MaestroResponseSingle<Array<String>>(data: [
