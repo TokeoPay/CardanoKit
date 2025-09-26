@@ -16,7 +16,7 @@ public class CostModels {
     }
     
     public func set(operation: Int64, cost: Int) throws {
-        let x = try CSLKit.costModelSet(self_rptr: self.ptr, operation: operation, cost_rptr: CSLKit.intFromStr(string_str: "\(cost)"))
+        try CSLKit.costModelSet(self_rptr: self.ptr, operation: operation, cost_rptr: CSLKit.intFromStr(string_str: "\(cost)"))
     }
 }
 

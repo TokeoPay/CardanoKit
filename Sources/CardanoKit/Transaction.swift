@@ -452,7 +452,7 @@ public class Amount {
         let valuePtr = try CSLKit.valueNew(coin_rptr: CSLKit.bigNumFromStr(string_str: "\(lovelace)"))
         
         if let assets = self.multiAsset {
-            try CSLKit.valueSetMultiasset(self_rptr: valuePtr, multiasset_rptr: assets.ptr)
+            _ = try CSLKit.valueSetMultiasset(self_rptr: valuePtr, multiasset_rptr: assets.ptr)
         }
         
         return try Value(ptr: valuePtr)

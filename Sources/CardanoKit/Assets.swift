@@ -142,7 +142,7 @@ public class Assets {
         
         let assetName = try CSLKit.assetNameNew(name_data: assetNameData)
         
-        let anHex = try CSLKit.assetNameToHex(self_rptr: assetName)
+        _ = try CSLKit.assetNameToHex(self_rptr: assetName)
         
         let amountBigNum = try CSLKit.bigNumFromStr(string_str: "\(amount)")
         _ = try CSLKit.assetsInsert(self_rptr: self.ptr, asset_rptr: assetName, value_int: amountBigNum)
@@ -221,12 +221,12 @@ public class AssetName {
     var ptr: OpaqueRustPointer<CSLKit.Types.CSL_AssetName>
     var name: String
     
-    init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_AssetName>) throws {
+    public init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_AssetName>) throws {
         self.ptr = ptr
         self.name = try CSLKit.assetNameToHex(self_rptr: self.ptr)
     }
     
-    convenience init(name: Data) throws {
+    public convenience init(name: Data) throws {
         try self.init(ptr: try CSLKit.assetNameNew(name_data: name))
     }
     

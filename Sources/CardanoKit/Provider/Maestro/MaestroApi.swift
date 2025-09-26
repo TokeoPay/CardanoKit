@@ -177,7 +177,7 @@ public actor MaestroAPI: MaestroAPIProtocol {
         // Schedule quota reset if not already active
         Task {
             try await Task.sleep(nanoseconds: 1_000_000_000) // 1s
-            await self.resetQuota()
+            self.resetQuota()
         }
     }
     

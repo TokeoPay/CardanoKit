@@ -105,7 +105,6 @@ public class Bip32PrivateKey {
     init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_Bip32PrivateKey>) {
 //        ptr.debug(prefix: "Bip32PrivateKey")
         self.ptr = ptr
-        Data()
     }
     
     public func toPublic() throws -> Bip32PublicKey {

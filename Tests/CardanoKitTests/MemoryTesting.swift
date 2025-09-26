@@ -7,7 +7,7 @@
 
 import Darwin
 import Testing
-import XCTest
+import Foundation
 @testable import CardanoKit
 
 func currentMemoryUsage() -> UInt64 {
@@ -33,16 +33,16 @@ func stressTestRustInterop(iterations: Int = 10_000) throws {
     for _ in 0..<iterations {
         try autoreleasepool {
             let fixedTxn = try FixedTransaction.fromHex(hex: testTransactionCbor)
-            try fixedTxn.hash()
-            try fixedTxn.getBody()
-            try fixedTxn.getFee()
-            try fixedTxn.toHex()
+            _ = try fixedTxn.hash()
+            _ = try fixedTxn.getBody()
+            _ = try fixedTxn.getFee()
+            _ = try fixedTxn.toHex()
         }
     }
 }
 
 
-@Test(.serialized) func memory_test_transaction_from_hex() async throws {
+@Test() func memory_test_transaction_from_hex() async throws {
     let start = currentMemoryUsage()
     print("Start memory: \(start / 1024) KB")
     

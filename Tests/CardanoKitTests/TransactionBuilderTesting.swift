@@ -27,7 +27,7 @@ import XCTest
     for utxo in walletUtxos {
         let minAda = try await utxo.output?.minAda(dataProvider: provider)
     
-        print("\(utxo.input?.txHash)#\(utxo.input?.index)  = \(minAda)")
+        print("\(utxo.input!.txHash!)#\(utxo.input!.index!)  = \(minAda!)")
     }
     
 }

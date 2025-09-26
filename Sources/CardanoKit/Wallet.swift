@@ -90,12 +90,10 @@ public class CardanoWallet {
                     foundKey = pk
                 }
                 index = index + 1
-                print(" >> Have we found anything: \(foundKey != nil) - next index: \(index)")
             } while (foundKey == nil && index < 20)
         } else {
             
             if let stakingCredential = address.stakingCredential {
-                print(" >> Have a Staking Cred")
                 let pk = try self.rootKeychain.getStakingKey(index: 0)
                 if (try pk
                     .toPublic()
@@ -108,8 +106,6 @@ public class CardanoWallet {
         }
         
         if let foundKey = foundKey {
-         
-            print("Found the Private Key")
             return try DataSignature.fromJson(json: try foundKey.toRaw()
                 .signData(data: data, address: address))
         }
@@ -146,7 +142,7 @@ public class CardanoWallet {
                     keysToSignWith.append(pk)
                 }
                 index = index + 1
-                print(" >> Have we found anything: keyFound=\(keyFound) - next index: \(index)")
+//                print(" >> Have we found anything: keyFound=\(keyFound) - next index: \(index)")
             } while (!keyFound && index < 20)
         }
         
@@ -169,7 +165,7 @@ public class CardanoWallet {
         try (0...accountAddresses.count + 20).forEach { index in
             let myCred = try getPaymentPrivateKey(index: Int64(index)).toPublic().credential()
             
-            if let address = try accountAddresses.first(where: { if let cred = $0.paymentCredential { try myCred.matches(other: cred) } else { false }  }) {
+            if try accountAddresses.first(where: { if let cred = $0.paymentCredential { try myCred.matches(other: cred) } else { false }  }) != nil {
                 try foundAddresses[try myCred.toHex()] = AddressMapping(type: .Payment, index: Int64(index), credHash: myCred.toHex())
             }
         }

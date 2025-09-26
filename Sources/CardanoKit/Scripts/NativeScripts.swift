@@ -194,7 +194,7 @@ public class NativeScript {
      }
      ```
      */
-    init(json: String) throws {
+    public init(json: String) throws {
         self.ptr = try CSLKit.nativeScriptFromJson(json_str: json)
     }
     

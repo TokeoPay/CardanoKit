@@ -128,7 +128,7 @@ extension Data {
     
     let signature = try wallet.signData(data: Data(stringToSign.utf8), withAddress: try wallet.getPaymentAddress(index: 15).asBech32())
 
-    print(" >> Signed Result: ", signature)
+    print(" >> Signed Result: ", signature!)
 }
 
 
@@ -138,7 +138,7 @@ extension Data {
     let txn = try FixedTransaction.fromHex(hex: txCbor)
     let hash = try txn.hash()
     #expect(hash == "5024b4d07c9a27257201b266a44ae1b28a842c9fbb43c9b4e0c2d016f2238c0e")
-    print("Fee: \(try txn.getFee())")
+    print("Fee: \(try txn.getFee()!)")
 }
 
 @Test func test_parse_a_transaction_2() async throws {
