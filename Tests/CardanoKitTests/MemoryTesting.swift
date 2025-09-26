@@ -42,7 +42,7 @@ func stressTestRustInterop(iterations: Int = 10_000) throws {
 }
 
 
-@Test func memory_test_transaction_from_hex() async throws {
+@Test(.serialized) func memory_test_transaction_from_hex() async throws {
     let start = currentMemoryUsage()
     print("Start memory: \(start / 1024) KB")
     

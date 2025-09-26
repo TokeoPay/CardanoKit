@@ -272,7 +272,7 @@ public class TransactionUnspentOutput {
     public static func fromHex(hex: String) throws -> TransactionUnspentOutput {
         return try TransactionUnspentOutput(ptr: CSLKit.transactionUnspentOutputFromHex(hex_str_str: hex))
     }
-    
+        
     public var input: TransactionInput? {
         do {
             return try TransactionInput(ptr: CSLKit.transactionUnspentOutputGetInput(self_rptr: self.ptr))
@@ -371,6 +371,21 @@ public class TransactionOutput {
         } catch {
             return nil
         }
+    }
+    
+    public func minAda(dataProvider: TransactionDataProvider) async throws -> Int {
+        let coinsPerUtxosByte = try await dataProvider.coinsPerUtxoByte()
+        
+        return Int(
+            try CSLKit.bigNumToStr(
+                    self_rptr: CSLKit.minAdaForOutput(
+                        output_rptr: self.ptr,
+                        data_cost_rptr: CSLKit.dataCostNewCoinsPerByte(
+                            coins_per_byte_rptr: CSLKit.bigNumFromStr(string_str: "\(coinsPerUtxosByte)")
+                        )
+                    )
+                )
+        )!
     }
     
     public func toJson() throws -> String {

@@ -98,6 +98,10 @@ public class MockMaestroAPI: MaestroAPIProtocol {
 
 
 struct TextTxDataProvider: TransactionDataProvider {
+    func coinsPerUtxoByte() async throws -> Int {
+        return 1000000
+    }
+    
     
     func getStakeAccountAddresses(stake_account_address: String) async throws -> [Address] {
         let addresses = MaestroResponseSingle<Array<String>>(data: [

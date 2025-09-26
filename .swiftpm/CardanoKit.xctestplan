@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "0FA884E4-4A74-45E6-AAA6-5701687FA690",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "CardanoKitTests",
+        "name" : "CardanoKitTests"
+      }
+    }
+  ],
+  "version" : 1
+}

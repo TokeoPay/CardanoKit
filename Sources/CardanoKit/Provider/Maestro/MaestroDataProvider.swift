@@ -33,6 +33,29 @@ public typealias APIKeyProvider = @Sendable () async -> String
 public class MaestroDataProvider: TransactionDataProvider {
     
     private var transactionBuilderConfig: TransactionBuilderConfig? = nil
+    private var protocolParams: MaestroProtocolParameters? = nil
+    
+    public func coinsPerUtxoByte() async throws -> Int {
+        
+        let pp = try await getProtocolParams()
+        
+        return pp.minUtxoDepositCoefficient
+    }
+    
+    func getProtocolParams() async throws -> MaestroProtocolParameters {
+        
+        if let pp = self.protocolParams {
+            return pp
+        }
+        
+        let ppResult = try await self.maestroApi.request(
+            path: "/v1/protocol-parameters",
+            responseType: MaestroResponseSingle<MaestroProtocolParameters>.self,
+            errorType: MaestroAPIError.self
+        )
+        self.protocolParams = ppResult.data
+        return ppResult.data
+    }
     
     public func getTransactionBuilderConfig() async throws -> TransactionBuilderConfig {
         // Return cached config if already built
@@ -40,14 +63,8 @@ public class MaestroDataProvider: TransactionDataProvider {
             return cachedConfig
         }
         
-        // Fetch protocol parameters
-        let ppResult = try await self.maestroApi.request(
-            path: "/v1/protocol-parameters",
-            responseType: MaestroResponseSingle<MaestroProtocolParameters>.self,
-            errorType: MaestroAPIError.self
-        )
-        
-        let pp = ppResult.data
+        let pp = try await getProtocolParams()
+        self.protocolParams = pp
         
         // Build the config
         let txBC = try TransactionBuilderConfigBuilder()

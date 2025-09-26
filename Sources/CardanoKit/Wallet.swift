@@ -19,9 +19,11 @@ public class CardanoWallet {
     private var network: Int64 = 1
     private var rootKeychain: Keychain
     private var dataProvider: TransactionDataProvider?
+    private var foundAddresses: [String: AddressMapping] = [:]
     
-    init(keychain: Keychain) {
+    init(network: Int64 = 1, keychain: Keychain) {
         self.rootKeychain = keychain
+        self.network = network
         
 //        self.rootKeychain.getPaymentKey(index: 0)
         
@@ -32,20 +34,20 @@ public class CardanoWallet {
         try self.init(keychain: Keychain(strength: 256))
     }
     
-    convenience init(accountIndex: Int64, mnemonic: String) throws {
-        try self.init(keychain: Keychain(accountIndex: accountIndex, mnemonic: mnemonic.components(separatedBy: " ")))
+    convenience init(network: Int64, accountIndex: Int64, mnemonic: String) throws {
+        try self.init(network: network, keychain: Keychain(accountIndex: accountIndex, mnemonic: mnemonic.components(separatedBy: " ")))
     }
     
-    public static func generate(accountIndex: Int64, wordCount: WordCount) throws -> CardanoWallet {
-        CardanoWallet(keychain:try Keychain(strength: wordCount.rawValue))
+    public static func generate(network: Int64 = 0, accountIndex: Int64, wordCount: WordCount) throws -> CardanoWallet {
+        CardanoWallet(network: network, keychain:try Keychain(strength: wordCount.rawValue))
     }
     
     public static func fromMnemonic(network: Int64 = 0, accountIndex: Int64, words: String) throws  -> CardanoWallet {
-        return try CardanoWallet(accountIndex: accountIndex, mnemonic: words)
+        return try CardanoWallet(network: network, accountIndex: accountIndex, mnemonic: words)
     }
     
-    public static func fromEntropy(accountIndex: Int64, entropy: [UInt8]) throws -> CardanoWallet {
-        CardanoWallet(keychain:try Keychain(accountIndex: accountIndex, entropy: entropy, password: nil))
+    public static func fromEntropy(network: Int64 = 0, accountIndex: Int64, entropy: [UInt8]) throws -> CardanoWallet {
+        CardanoWallet(network: network, keychain:try Keychain(accountIndex: accountIndex, entropy: entropy, password: nil))
     }
     
     public func getRootPrivateKey() throws -> Bip32PrivateKey {
@@ -156,27 +158,21 @@ public class CardanoWallet {
     }
     
     public func discoverAccountAddresses() async throws {
-//        guard let dataProvider = self.dataProvider else {
-//            throw WalletError.NoDataProviderSet
-//        }
-//        
-//        let stakeAddress = try self.getStakingAddress().asBech32()
-//        
-//        let accountAddresses = try await dataProvider.getStakeAccountAddresses(stake_account_address: stakeAddress)
-//        
-//        let foundAddresses: [String: AddressMapping] = [:]
-//        
-//        try (0...accountAddresses.count + 20).forEach { index in
-//            let myCred = try getPaymentPrivateKey(index: Int64(index)).toPublic().credential()
-//            
-//            if let address = try accountAddresses.first(where: { if let cred = $0.paymentCredential { try myCred.matches(other: cred) } else { false }  }) {
-//                foundAddresses
-//            }
-//            
-//            
-//        }
-//        
-//        getPaymentPrivateKey().toPublic().credential().matches(other: <#T##Credential#>)
+        guard let dataProvider = self.dataProvider else {
+            throw WalletError.NoDataProviderSet
+        }
+        
+        let stakeAddress = try self.getStakingAddress().asBech32()
+        
+        let accountAddresses = try await dataProvider.getStakeAccountAddresses(stake_account_address: stakeAddress)
+        
+        try (0...accountAddresses.count + 20).forEach { index in
+            let myCred = try getPaymentPrivateKey(index: Int64(index)).toPublic().credential()
+            
+            if let address = try accountAddresses.first(where: { if let cred = $0.paymentCredential { try myCred.matches(other: cred) } else { false }  }) {
+                try foundAddresses[try myCred.toHex()] = AddressMapping(type: .Payment, index: Int64(index), credHash: myCred.toHex())
+            }
+        }
         
     }
     

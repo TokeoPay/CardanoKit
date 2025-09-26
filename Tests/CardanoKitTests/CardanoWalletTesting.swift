@@ -172,8 +172,10 @@ extension Data {
         print($0.hexEncodedString(), "\n")
     }
     
-    #expect(requiredSigners.count == 1)
-    #expect(requiredSigners[0].hexEncodedString() == "87d750a165eaaafaecb4b2b72109c293a21843cafbdb0488ff6a6db4")
+    #expect(requiredSigners.count == 2)
+    #expect( 
+        requiredSigners.first(where: { $0.hexEncodedString() == "87d750a165eaaafaecb4b2b72109c293a21843cafbdb0488ff6a6db4"}) != nil
+    )
     
     try wallet.signTransaction(transaction: txn, utxos: utxos)
     
