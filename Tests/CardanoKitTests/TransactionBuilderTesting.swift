@@ -13,7 +13,7 @@ import XCTest
 @Test func minAdaOnUtxo() async throws {
     let words = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
     let wallet = try CardanoWallet.fromMnemonic(accountIndex: 0, words: words)
-    let receiveAddress = try wallet.getPaymentAddress(index: 2)
+    let receiveAddress = try wallet.getPaymentAddress()
     
     let mockAPI = try getMockAPI(address: try receiveAddress.asBech32())
     
@@ -46,7 +46,7 @@ import XCTest
     print("Change Address: \(changeAddress)")
     print("Receive Address: \(receiveAddress)")
     
-    let mockAPI = try getMockAPI(address: try receiveAddress.asBech32())
+    let mockAPI = try getMockAPI(address: try changeAddress.asBech32())
     
     let provider = MaestroDataProvider(maestroApi: mockAPI)
     

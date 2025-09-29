@@ -111,7 +111,10 @@ public actor MaestroAPI: MaestroAPIProtocol {
         
         // resolve api key
         let apiKey = await config.apiKeyProvider()
-        let url = config.baseURL.appendingPathComponent(path)
+        
+        guard let url = config.baseURL.appendingPathOrQuery(path) else {
+            fatalError("Invalid URL string: \(path)")
+        }
         
         let headers: HTTPHeaders = [
             "api-key": apiKey,
@@ -202,5 +205,21 @@ public actor MaestroAPI: MaestroAPIProtocol {
             return remaining > 0
         }
         return true // optimistic first request
+    }
+}
+
+
+extension URL {
+    /// Safely appends either a plain path or a path-with-query to the base URL.
+    /// - Parameter pathOrAbsolute: A string starting with "/" that may optionally include a query string.
+    /// - Returns: A new `URL` or `nil` if the result is invalid.
+    func appendingPathOrQuery(_ pathOrAbsolute: String) -> URL? {
+        if pathOrAbsolute.contains("?") || pathOrAbsolute.contains("#") {
+            // Treat as full path + query
+            return URL(string: pathOrAbsolute, relativeTo: self)
+        } else {
+            // Safe for pure paths
+            return self.appendingPathComponent(pathOrAbsolute)
+        }
     }
 }

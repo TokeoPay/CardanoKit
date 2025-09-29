@@ -28,7 +28,9 @@ public func getMockAPI(address: String) throws -> MockMaestroAPI {
             return try FixedTransaction(hex: body as! String).hash()
         case "/v1/addresses/utxos?with_cbor=true":
             
-            return addressUtxos
+            let utxos =  addressUtxos.data.filter { (body as! [String]).contains($0.address) }
+            
+            return MaestroResponse(data: utxos, lastUpdated: addressUtxos.lastUpdated, nextCursor: addressUtxos.nextCursor)
             
         case "/v1/transactions/outputs?with_cbor=true":
             

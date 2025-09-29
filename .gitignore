@@ -9,3 +9,4 @@ DerivedData/
 .claude/
 build
 .swiftpm
+.env

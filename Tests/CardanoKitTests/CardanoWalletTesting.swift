@@ -272,3 +272,19 @@ extension Data {
     
     
 }
+
+
+@Test func test_getUtxos_when_there_are_no_utxos() async throws {
+    let words = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
+    let wallet = try CardanoWallet.fromMnemonic(accountIndex: 0, words: words)
+    
+    let provider = try MaestroDataProvider(maestroApi: getMockAPI(address: "addr1qx2v83fl7g3vwrsg3zyyn24l33h46rzvcqleq8hul7pyq02d54gqj9vhlafuhzuduhq74ew4jc5xxtrfpuu397nxc4mq2jq8ga"))
+    
+    wallet.addDataProvider(dataProvider: provider)
+    
+    let utxos = try await wallet.getUtxos()
+    
+    print(utxos.length)
+    #expect(utxos.length == 0)
+    
+}

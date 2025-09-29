@@ -56,6 +56,6 @@ func stressTestRustInterop(iterations: Int = 10_000) throws {
     let end = currentMemoryUsage()
     print("End memory: \(end / 1024) KB")
     
-    #expect(end < start + 5_000_000, "Possible memory leak detected")
+    #expect(end < start + 5_000_000, "Possible memory leak detected - ensure that this test is run isolated")
 }
 
