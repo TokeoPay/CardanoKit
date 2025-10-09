@@ -200,7 +200,78 @@ public class TransactionInput {
     
 }
 
-
+public class TransactionBatchList: Sequence {
+    var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionBatchList>
+    public private(set) var length: Int64
+    
+    public convenience init(address: Address, utxos: TransactionUnspentOutputs, builderConfig: TransactionBuilderConfig) throws {
+        try self.init(ptr: CSLKit.createSendAll(address_rptr: address.ptr, utxos_rptr: utxos.ptr, config_rptr: builderConfig.ptr))
+    }
+    
+    init(ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionBatchList>) throws {
+        self.ptr = ptr
+        self.length = try CSLKit.transactionBatchListLen(self_rptr: self.ptr)
+    }
+    
+    public func makeIterator() -> Iterator {
+        return Iterator(parent: self)
+    }
+    
+    
+    
+    public struct Iterator: IteratorProtocol {
+        public typealias Element = FixedTransaction
+        private var currentIndex = Int64(-1)
+        private var currentBatchIndex = Int64(-1)
+        
+        private var currentBatchLength = Int64(0)
+        
+        private var currentBatch: OpaqueRustPointer<CSLKit.Types.CSL_TransactionBatch>? = nil
+        private let parent: TransactionBatchList
+        
+        init(parent: TransactionBatchList) {
+            self.parent = parent
+        }
+        
+        public mutating func next() -> FixedTransaction? {
+            guard currentIndex < parent.length else {
+                return nil
+            }
+            currentBatchIndex += 1
+            do {
+                
+                if currentBatch == nil || currentBatchIndex == currentBatchLength {
+                    currentIndex += 1
+                    
+                    guard currentIndex < parent.length else {
+                        return nil
+                    }
+                    
+                    // Get the next Batch
+                    currentBatch = try CSLKit.transactionBatchListGet(self_rptr: parent.ptr, index: currentIndex)
+                    guard let currentBatch = currentBatch else {
+                        return nil
+                    }
+                    currentBatchIndex = 0
+                    currentBatchLength = try CSLKit.transactionBatchLen(self_rptr: currentBatch)
+                }
+                
+                guard let currentBatch = currentBatch else {
+                    return nil
+                }
+                
+                let txn = try CSLKit.transactionBatchGet(self_rptr: currentBatch, index: currentBatchIndex)
+                return try FixedTransaction(hex: CSLKit.transactionToHex(self_rptr: txn))
+                
+            } catch {
+                // A real unexpected error: crash or log, but don’t silently
+                // terminate the seq here unless that’s truly what you want.
+                fatalError("Rust threw when fetching Transaction[currentBatchIndex=\(currentBatchIndex) currentIndex=\(currentIndex)]: \(error)")
+            }
+        }
+    }
+    
+}
 
 public class TransactionUnspentOutputs: Sequence {
     var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionUnspentOutputs>
@@ -290,29 +361,6 @@ public class TransactionUnspentOutput {
     }
     
 }
-
-//public class TransactionOutputBuilder {
-//    var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionOutputBuilder>
-//    
-//    init() throws {
-//        self.ptr = try CSLKit.transactionOutputBuilderNew()
-//    }
-//        
-////    public func next() throws -> TransactionOutputAmountBuilder {
-////        
-////    }
-////    public func build() throws -> TransactionOutput {
-////        let txOutPtr = try CSLKit.tranOutBui
-////    }
-//}
-//
-//public class TransactionOutputAmountBuilder {
-//    var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionOutputAmountBuilder>
-//    
-//    
-//    
-//}
-
 
 public class TransactionOutput {
     var ptr: OpaqueRustPointer<CSLKit.Types.CSL_TransactionOutput>

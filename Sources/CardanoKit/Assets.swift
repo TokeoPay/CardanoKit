@@ -41,7 +41,7 @@ public class Policy {
     }
 }
 
-public class MultiAsset: CustomDebugStringConvertible {
+public class MultiAsset: CustomDebugStringConvertible { //TODO: Implement Iterator for this
     public var debugDescription: String {
         do {
             return try self.toJson()
@@ -53,7 +53,6 @@ public class MultiAsset: CustomDebugStringConvertible {
     var ptr: OpaqueRustPointer<CSLKit.Types.CSL_MultiAsset>
     
     public init(from: [String: Int64]) throws {
-        
         self.ptr = try CSLKit.multiAssetNew()
         
         try normalize(from).forEach { (p, a) in

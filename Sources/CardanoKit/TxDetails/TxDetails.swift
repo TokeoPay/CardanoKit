@@ -40,7 +40,7 @@ public class Value: CustomDebugStringConvertible {
         self.assets = try MultiAsset(ptr: try CSLKit.valueMultiasset(self_rptr: self.ptr))
     }
     
-    init(lovelace: Int64, assets: MultiAsset) throws {
+    public init(lovelace: Int64, assets: MultiAsset) throws {
         self.lovelace = lovelace
         self.assets = assets
         self.ptr = try CSLKit.valueZero()
@@ -53,6 +53,11 @@ public class Value: CustomDebugStringConvertible {
     public func checkedAdd(other: Value) throws -> Value {
         return try Value(ptr: CSLKit.valueCheckedAdd(self_rptr: self.ptr, rhs_value_rptr: other.ptr))
     }
+    
+    
+    
+    
+    
     
 //    public func checkedAdd(other: Value) {
 //        self.lovelace += other.lovelace

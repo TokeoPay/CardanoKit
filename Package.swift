@@ -24,7 +24,7 @@ var package = Package(
             ) :
             .package(
                 url: "https://github.com/TokeoPay/csl-mobile-bridge.git",
-                exact: "0.0.1-alpha.16"
+                exact: "0.0.1-alpha.17"
             ),
     ],
     targets: [

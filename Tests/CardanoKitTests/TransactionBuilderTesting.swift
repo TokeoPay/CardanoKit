@@ -132,6 +132,30 @@ import XCTest
     print(try send_all_txn.toHex())
 }
 
+@Test func build_send_all_txn() async throws {
+    
+    let words = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
+    let wallet = try CardanoWallet.fromMnemonic(accountIndex: 0, words: words)
+    let changeAddress = try wallet.getPaymentAddress()
+    let receiveAddress = try wallet.getPaymentAddress(index: 2)
+    
+    let mockAPI = try getMockAPI(address: try changeAddress.asBech32())
+    
+    let provider = MaestroDataProvider(maestroApi: mockAPI)
+    
+    wallet.addDataProvider(dataProvider: provider)
+    
+    let walletUtxos = try await wallet.getUtxos()
+    
+    let txns = try await wallet.newSendAllTx(address_to: receiveAddress, utxos: walletUtxos)
+    
+    #expect(txns.length == 1)
+    
+    try txns.forEach { tx in
+        print(try tx.toHex())
+    }
+}
+
 @Test func validateNativeScript() throws {
     
     let mintScript = try NativeScript(json: """
@@ -153,7 +177,7 @@ import XCTest
         }
         """)
     
-    var hash = try mintScript.toHash().toHex()
+    let hash = try mintScript.toHash().toHex()
     
     #expect("1f7a58a1aa1e6b047a42109ade331ce26c9c2cce027d043ff264fb1f" == hash)
     

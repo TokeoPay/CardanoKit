@@ -288,3 +288,37 @@ extension Data {
     #expect(utxos.length == 0)
     
 }
+
+
+
+@Test func test_get_private_address() async throws {
+    let words = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
+    let wallet = try CardanoWallet.fromMnemonic(accountIndex: 0, words: words)
+    
+    let privateAddress = try wallet.getPaymentAddress(index: 34775)
+    
+    print(try privateAddress.asBech32())
+    
+    
+    let start = CFAbsoluteTimeGetCurrent()
+    
+    let privatePaymentCred = try privateAddress.paymentCredential!.toHex()
+    var found = false
+    var index = Int64(-1)
+    repeat {
+
+        index = index + 1
+        
+        let pk = try  wallet.getPaymentPrivateKey(index: index).toPublic().credential().toHex()
+        
+        found = pk == privatePaymentCred
+        
+    } while !found
+    
+    let diff = CFAbsoluteTimeGetCurrent() - start
+    
+    print("Found at index \(index)")
+    #expect(index == 34775)
+    
+    print("Execution time: \(diff) seconds")
+}

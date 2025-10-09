@@ -19,7 +19,7 @@ public class CardanoWallet {
     private var network: Int64 = 1
     private var rootKeychain: Keychain
     private var dataProvider: TransactionDataProvider?
-    private var foundAddresses: [String: AddressMapping] = [:]
+    private var foundAddresses: [String: AddressMapping] = [:] // TODO: I need to provide a way for the Developer to provide this data. Could look at using a proper local data store
     
     init(network: Int64 = 1, keychain: Keychain) {
         self.rootKeychain = keychain
@@ -191,6 +191,15 @@ public class CardanoWallet {
         
         let config = try await dataProvider.getTransactionBuilderConfig()
         return try TransactionBuilder(config: config.ptr)
+    }
+    
+    public func newSendAllTx(address_to: Address, utxos: TransactionUnspentOutputs) async throws -> TransactionBatchList {
+        guard let dataProvider = self.dataProvider else {
+            throw WalletError.NoDataProviderSet
+        }
+        let config = try await dataProvider.getTransactionBuilderConfig()
+        
+        return try TransactionBatchList(address: address_to, utxos: utxos, builderConfig: config)
     }
     
     public func getUtxos() async throws -> TransactionUnspentOutputs {
